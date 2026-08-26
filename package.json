@@ -1,0 +1,25 @@
+{
+  "name": "bitcoin-paperwallet-generator",
+  "version": "0.0.1",
+  "description": "Generate paperwallets...",
+  "main": "./index.html",
+  "repository": "https://github.com/own-your-money/bitcoin-paperwallet-generator.git",
+  "scripts": {
+    "fix": "standard --fix",
+    "serve": "live-server --port=4400 --host=localhost"
+  },
+  "author": "weedshaker@starsystems.ch",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "live-server": "*",
+    "standard": "*"
+  },
+  "standard": {
+    "ignore": []
+  },
+  "dependencies": {
+    "@bitcoin-js/tiny-secp256k1-asmjs": "^2.2.3",
+    "bitcoinjs-lib": "^7.0.1",
+    "ecpair": "^3.0.1"
+  }
+}

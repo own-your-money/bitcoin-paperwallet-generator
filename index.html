@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="require-trusted-types-for 'script';trusted-types default">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href=./src/css/variables.css rel=stylesheet type="text/css">
+  <script rel=preload as="script" type="text/javascript" src="./src/es/Environment.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "@noble/hashes/crypto": "./node_modules/@noble/hashes/esm/crypto.js",
+        "@noble/hashes/ripemd160": "./node_modules/@noble/hashes/esm/ripemd160.js",
+        "@noble/hashes/sha1": "./node_modules/@noble/hashes/esm/sha1.js",
+        "@noble/hashes/sha256": "./node_modules/@noble/hashes/esm/sha256.js",
+        "base-x": "./node_modules/base-x/src/esm/index.js",
+        "bech32": "./src/es/libs/bech32-index.js",
+        "bip174": "./node_modules/bip174/src/esm/lib/psbt.js",
+        "bitcoinjs-lib": "./node_modules/bitcoinjs-lib/src/esm/index.js",
+        "bs58": "./node_modules/bs58/src/esm/index.js",
+        "bs58check": "./node_modules/bs58check/src/esm/index.js",
+        "buffer": "./src/es/libs/buffer.js",
+        "crypto": "./src/es/libs/crypto.js",
+        "ecpair": "./node_modules/ecpair/src/esm/index.js",
+        "tiny-secp256k1": "./node_modules/@bitcoin-js/tiny-secp256k1-asmjs/lib/index.js",
+        "uint8array-tools": "./node_modules/uint8array-tools/src/mjs/browser.js",
+        "valibot": "./node_modules/valibot/dist/index.mjs",
+        "varuint-bitcoin": "./node_modules/varuint-bitcoin/src/esm/index.js",
+        "wif": "./node_modules/wif/src/esm/index.js"
+      }
+    }
+  </script>
+  <meta name="description" content="Generate paperwallets...">
+  <meta name="keywords" content="paperwallets">
+  <title>bitcoin-paperwallet-generator</title>
+</head>
+<body>
+  <c-router resume mode="search" routes="[
+    {
+      'name': 'p-index',
+      'path': '../../components/pages/Index.js',
+      'regExp': ['/[#=]{1}\/$/', '/^\/$/'],
+      'title': 'bitcoin-paperwallet-generator'
+    }
+  ]">
+    <div class="custom-loader"></div>
+  </c-router>
+  <script rel=preload type=module>
+    Promise.all([
+      import('./src/es/event-driven-web-components-router/src/Router.js').then(module => ['c-router', module.default])
+    ]).then(elements => elements.forEach(element => {
+      // don't define already existing customElements
+      if (element && !customElements.get(element[0])) customElements.define(...element)
+    }))
+  </script>
+</body>
+</html>

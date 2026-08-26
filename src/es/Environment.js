@@ -1,0 +1,77 @@
+/* global self */
+/* global location */
+
+const currentScriptUrl = new URL(document.currentScript.src)
+
+// @ts-ignore
+self.Environment = {
+  isTestingEnv: location.hostname === 'localhost',
+  language: currentScriptUrl.searchParams.get('language') || document.documentElement.getAttribute('lang') || navigator.language || 'en',
+  stage: currentScriptUrl.searchParams.get('stage') || document.documentElement.getAttribute('stage') || '',
+  version: `version=${currentScriptUrl.searchParams.get('version') || document.documentElement.getAttribute('version') || '2.3.9'}`, // https://semver.org/
+  /**
+   * Get custom mobile breakpoint
+   * @param {{constructor?: string, tagName?: string, namespace?: string}} organism
+   * @return {string}
+   */
+  mobileBreakpoint: ({ constructor, tagName, namespace } = {}) => {
+    switch (true) {
+      default:
+        return '767px'
+    }
+  }
+}
+
+// react to the router and expose the active route for components globalEventTarget
+document.addEventListener('pre-route', event => {
+  self.Environment.activeRoute = event.detail.component
+  self.Environment.router = event.target
+})
+
+/**
+ * XSS Content Security Policy
+ * NOTE: this function is copied from src/es/components/web-components-toolbox/src/es/helpers/Environment.js and can not be imported, since the createPolicy function must execute synchronous, otherwise the browser throws the policy error
+ *
+ * https://content-security-policy.com/examples/meta/
+ * is enforced by: <meta http-equiv="Content-Security-Policy" content="require-trusted-types-for 'script'">
+ *
+ * Sink uses trusted type only: https://web.dev/articles/trusted-type
+ * Avoid XSS attacks by sanitizing the html according to: https://developer.mozilla.org/en-US/docs/Web/Security/Attacks/XSS
+ * and the target list: https://github.com/cure53/DOMPurify/blob/27e8496bcd689a16acc7d0bf7c88b933efad569a/demos/hooks-mentaljs-demo.html#L20
+ * plus: https://stackoverflow.com/questions/6976053/xss-which-html-tags-and-attributes-can-trigger-javascript-events
+ * stackoverflow citation and conclusion: "I didn't knew about those new attributes. I checked, and it seems that the only attributes that start with on are all Javascript event triggers. I will probably just remove all that match that pattern."
+ * NOTE: script tags are already automatically escaped by modern browsers, so we only target <image, <img starting tags and "javascript:"
+ *
+ * @static
+ * @param {string} html
+ * @return {string}
+ */
+if (typeof self.trustedTypes?.createPolicy === 'function' && !self.trustedTypes.defaultPolicy && document.querySelector('meta[http-equiv=Content-Security-Policy][content*=require-trusted-types-for]')) {
+  const sanitizer = typeof Sanitizer === 'function'
+    ? new Sanitizer({}) // make a custom sanitizer which removes all XSS
+    : null
+  self.trustedTypes.createPolicy('default', {
+    // first sanitize tags eg.: <img src="xyz" onload=alert('XSS')>, <img src="xyz" onmouseover=alert('XSS')>, <image/src/onerror=alert('XSS')>, etc.
+    // second sanitize tags eg.: <a href="javascript:alert(document.location);">XSS</a>, <form action="javascript:alert(document.location);"><input type="submit" /></form>, etc.
+    // complex look ahead: (?:"[^"]*"|'[^']*'|[^'">])* to fix what a selector like [^>]* would not catch: <img src='x>yz' onerror=alert('XSS')>
+    createHTML: sanitizer && typeof Document.parseHTML === 'function'
+      ? string => Document.parseHTML(string, { sanitizer }).body.innerHTML
+      : string => string.replace(/<[a-zA-Z][a-zA-Z0-9._-]*(?=(?:"[^"]*"|'[^']*'|[^'">])*(?:(\bon[a-z]{2,})\s*=|(?:href|src|action|formaction|poster|data|xlink:href)\s*=\s*["']?([^"'<>]*)(?::|&colon;?|&#(?:x0*3a|0*58);?)))(?:"[^"]*"|'[^']*'|[^'">])*>/gi, (match, captureAttributeName, captureAttributeValue) => {
+        // the regex above does select only <node... elements. then looks for:
+        // 1. any attribute name starting with "on" + two alphabetic characters eg. "oner"
+        // 2. any attribute name called href, src, action, formaction, poster or data with a value containing colon ":", these are the known possible javascript as attribute value execution sinks (not value is going to be html parsed and entities like &#115; = "s" or &Tab; = "" need to be accounted for)
+        // remove all 1. on... attribute containing nodes
+        if (captureAttributeName) return ''
+        if (captureAttributeValue !== undefined) {
+          const cleanedMatch = match.replace(/[\u0000-\u0020]/g, '')
+          // remove all 2. by testing all attribute values for javascript, vbscript, data and any decimal and hexadecimal html entity
+          if (/(javascript|vbscript|data|&(?:#[0-9]{1,7}|#x[0-9a-f]{1,6}))([^"'<>]*)(?::|&colon;?|&#(?:x0*3a|0*58);?)/i.test(cleanedMatch)) return ''
+          // remove all 2. by testing for strings javascript, vbscript and data obfuscated with named html entities eg.: &tab; <a href="j&Tab;avascript:alert(1)"> , j&notanentity;avascript: , etc.
+          if (/(?:(?:j(&[A-Za-z][A-Za-z0-9]{1,31};?)*a(&[A-Za-z][A-Za-z0-9]{1,31};?)*v(&[A-Za-z][A-Za-z0-9]{1,31};?)*a.*|v(&[A-Za-z][A-Za-z0-9]{1,31};?)*b(&[A-Za-z][A-Za-z0-9]{1,31};?)*)s(&[A-Za-z][A-Za-z0-9]{1,31};?)*c(&[A-Za-z][A-Za-z0-9]{1,31};?)*r(&[A-Za-z][A-Za-z0-9]{1,31};?)*i(&[A-Za-z][A-Za-z0-9]{1,31};?)*p(&[A-Za-z][A-Za-z0-9]{1,31};?)*t|d(&[A-Za-z][A-Za-z0-9]{1,31};?)*a(&[A-Za-z][A-Za-z0-9]{1,31};?)*t(&[A-Za-z][A-Za-z0-9]{1,31};?)*a(&[A-Za-z][A-Za-z0-9]{1,31};?)*)([^"'<>]*)(?::|&colon;?|&#(?:x0*3a|0*58);?)/i.test(cleanedMatch)) return ''
+        }
+        return match
+      }),
+    createScriptURL: string => string, // unsafe but including webworker's, service workers, etc. is okay
+    createScript: string => string // unsafe but eval at css templates is okay
+  })
+}
