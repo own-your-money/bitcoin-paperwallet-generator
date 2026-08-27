@@ -6,11 +6,13 @@
   "repository": "https://github.com/own-your-money/bitcoin-paperwallet-generator.git",
   "scripts": {
     "fix": "standard --fix",
-    "serve": "live-server --port=4400 --host=localhost"
+    "serve": "live-server --port=4400 --host=localhost",
+    "build": "npx esbuild --bundle --format=esm --outfile=./src/es/libs/buffer.js ./node_modules/buffer/index.js && npx esbuild --bundle --format=esm --outfile=./src/es/libs/bech32.js ./node_modules/bech32/dist/index.js"
   },
   "author": "weedshaker@starsystems.ch",
   "license": "Apache-2.0",
   "devDependencies": {
+    "esbuild": "^0.28.2",
     "live-server": "*",
     "standard": "*"
   },
@@ -20,6 +22,7 @@
   "dependencies": {
     "@bitcoin-js/tiny-secp256k1-asmjs": "^2.2.3",
     "bitcoinjs-lib": "^7.0.1",
+    "buffer": "^6.0.3",
     "ecpair": "^3.0.1"
   }
 }

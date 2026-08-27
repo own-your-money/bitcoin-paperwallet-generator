@@ -4,10 +4,6 @@ import * as bitcoin from 'bitcoinjs-lib'
 // @ts-ignore
 import * as ecc from 'tiny-secp256k1'
 import { ECPairFactory } from 'ecpair'
-// buffer must be global before anything gets loaded
-// @ts-ignore
-import { Buffer } from 'buffer'
-globalThis.Buffer = Buffer
 
 /**
 * Generator Main/Start Page
@@ -23,8 +19,6 @@ export default class Index extends Shadow() {
       tabindex: 'no-tabindex-style',
       ...options
     }, ...args)
-
-    globalThis.Buffer = Buffer
   }
 
   connectedCallback () {
