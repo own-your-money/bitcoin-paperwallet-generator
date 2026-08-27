@@ -126,13 +126,8 @@ export default class Index extends Shadow() {
 
   static #generateWallet() {
     const keyPair = ECPairFactory(ecc).makeRandom({
-      rng: size => {
-        // @ts-ignore
-        const bytes = new Uint8Array(size)
-        crypto.getRandomValues(bytes)
-        // randomBytes
-        return bytes
-      }
+      // @ts-ignore
+      rng: size => crypto.getRandomValues(new Uint8Array(size))
     })
     const { address: bitcoinAddress } = bitcoin.payments.p2wpkh({
       pubkey: keyPair.publicKey,
