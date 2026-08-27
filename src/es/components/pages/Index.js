@@ -5,6 +5,8 @@ import * as bitcoin from 'bitcoinjs-lib'
 import * as ecc from 'tiny-secp256k1'
 import { ECPairFactory } from 'ecpair'
 
+/* global Buffer */
+
 /**
 * Generator Main/Start Page
 *
@@ -103,14 +105,17 @@ export default class Index extends Shadow() {
   */
   renderHTML () {
     // ********************************************************************
-    const {bitcoinAddress, privateKey} = Index.#generateWallet()
+    const keyPair = Index.#getKeyPair()
+    const keyPairWIF = keyPair.toWIF() // equals privateKey
+    const bitcoinAddress = Index.#getBitcoinAddress(keyPair.publicKey)
+    console.log('test keyPair', Index.#testKeyPair(keyPair))
     // ********************************************************************
     this.html = /* html */`
       <section>
         <header>header</header>
         <main>
           <p>bitcoinAddress: ${bitcoinAddress}</p>
-          <p>privateKey: ${privateKey}</p>
+          <p>privateKey: ${keyPairWIF}</p>
         </main>
         <footer>footer</footer>
       </section>
@@ -118,19 +123,35 @@ export default class Index extends Shadow() {
     return Promise.resolve()
   }
 
-  static #generateWallet() {
-    const keyPair = ECPairFactory(ecc).makeRandom({
+  static #getKeyPair() {
+    return ECPairFactory(ecc).makeRandom({
       // @ts-ignore
-      rng: size => crypto.getRandomValues(new Uint8Array(size))
+      rng: size => Buffer.from(crypto.getRandomValues(new Uint8Array(size)))
     })
-    const { address: bitcoinAddress } = bitcoin.payments.p2wpkh({
-      pubkey: keyPair.publicKey,
+  }
+
+  static #getBitcoinAddress (publicKey) {
+    return bitcoin.payments.p2wpkh({
+      pubkey: publicKey,
       network: bitcoin.networks.bitcoin
-    })
-    return {
-      bitcoinAddress,
-      privateKey: keyPair.toWIF(),
-      publicKey: Array.from(keyPair.publicKey).map(byte => byte.toString(16).padStart(2, '0')).join('') // bytesToHex
-    }
+    }).address || false
+  }
+
+  static #testKeyPair (keyPair) {
+    const tests = {}
+    // test privateKey toWIF + fromWIF
+    const keyPairFromWIF = ECPairFactory(ecc).fromWIF(keyPair.toWIF()/* equals privateKey */, bitcoin.networks.bitcoin)
+    // @ts-ignore
+    tests.toFromWIF = Buffer.from(keyPairFromWIF.privateKey).equals(Buffer.from(keyPair.privateKey))
+    // test publicKey pointFromScalar
+    const derivedPubkey = ecc.pointFromScalar(keyPairFromWIF.privateKey, true)
+    // @ts-ignore
+    tests.pointFromScalar = Buffer.from(derivedPubkey).equals(Buffer.from(keyPair.publicKey))
+    // test bitcoinAddress matches privateKey
+    const bitcoinAddress = Index.#getBitcoinAddress(keyPair.publicKey)
+    // @ts-ignore
+    tests.p2wpkh = bitcoinAddress === Index.#getBitcoinAddress(Buffer.from(derivedPubkey)) && bitcoinAddress === Index.#getBitcoinAddress(keyPairFromWIF.publicKey)
+    if (Object.keys(tests).every(key => tests[key])) return {...tests, result: true}
+    return {...tests, error: new Error('Some tests did not pass!'), result: false}
   }
 }
