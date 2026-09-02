@@ -1,6 +1,7 @@
 // @ts-check
 import { Shadow } from '../../event-driven-web-components-prototypes/src/Shadow.js'
-import { getKeyPair, getBitcoinAddress, testKeyPair } from '../../Helpers.js'
+
+/* global Environment */
 
 /**
 * Generator Main/Start Page
@@ -16,6 +17,9 @@ export default class Index extends Shadow() {
       tabindex: 'no-tabindex-style',
       ...options
     }, ...args)
+
+    // @ts-ignore
+    this.footer = `<a href="https://github.com/own-your-money/bitcoin-paperwallet-generator" target="_blank">© OYM / ${Environment.stage} ${Environment.version}</a>`
   }
 
   connectedCallback () {
@@ -60,17 +64,38 @@ export default class Index extends Shadow() {
         word-break: var(--word-break, normal);
       }
       :host > section {
+        --height: calc(100svh - 2em);
         display: grid;
         grid-template-areas: "header"
                              "body"
                              "footer";
         grid-template-columns: 100%;
         grid-template-rows: minmax(var(--header-min-height , var(--spacing)), auto) 1fr minmax(var(--footer-min-height, var(--spacing)), auto);
-        min-height: var(--min-height, 100svh);
-        max-height: 100svh;
+        min-height: var(--min-height, var(--height));
+        max-height: var(--height);
+        margin: 1em;
+        .oym-img {
+          width: 12.5em;
+        }
+        .cards {
+          display: flex;
+          gap: 1em;
+          justify-content: space-between;
+        }
+        .card {
+          align-items: center;
+          background-color: white;
+          border-radius: 7em;
+          display: flex;
+          height: calc(50svw - 2em);
+          max-height: 50svh;
+          justify-content: center;
+          width: calc(50svw - 2em);
+        }
       }
       :host > section > header {
         grid-area: header;
+        text-align: center;
       }
       :host > section > body {
         grid-area: body;
@@ -87,10 +112,35 @@ export default class Index extends Shadow() {
         }
         :host section {
           grid-template-rows: minmax(var(--header-height-mobile, var(--header-height, var(--spacing))), auto) 1fr minmax(var(--footer-min-height-mobile, var(--footer-min-height, var(--spacing))), auto);
+          .cards {
+            flex-direction: column;
+            align-items: center;
+          }
+          .card {
+            border-radius: 3em;
+          }
         }
       }
     `
-    return Promise.resolve()
+    return this.fetchTemplate()
+  }
+
+  /**
+   * fetches the template
+   */
+  fetchTemplate () {
+    /** @type {import("../../event-driven-web-components-prototypes/src/Shadow.js").fetchCSSParams[]} */
+    const styles = [
+      {
+        path: `${this.importMetaUrl}../../event-driven-web-components-prototypes/src/css/reset.css`, // no variables for this reason no namespace
+        namespace: false
+      },
+      {
+        path: `${this.importMetaUrl}../../event-driven-web-components-prototypes/src/css/style.css`, // apply namespace and fallback to allow overwriting on deeper level
+        namespaceFallback: true
+      }
+    ]
+    return this.fetchCSS(styles)
   }
 
   /**
@@ -99,20 +149,27 @@ export default class Index extends Shadow() {
   * @return {Promise<void>}
   */
   renderHTML () {
-    // ********************************************************************
-    const keyPair = getKeyPair()
-    const keyPairWIF = keyPair.toWIF() // equals privateKey
-    const bitcoinAddress = getBitcoinAddress(keyPair.publicKey)
-    console.log('test keyPair', testKeyPair(keyPair))
-    // ********************************************************************
     this.html = /* html */`
       <section>
-        <header>header</header>
+        <header>
+          <h1>Welcome to</h1>
+          <a href="https://ownyour.money/" target=_blank><img class=oym-img src="./src/img/OYM.png" /></a>
+          <br>
+          <h3 class=center>ownyour.money</h3>
+        </header>
         <main>
-          <p>bitcoinAddress: ${bitcoinAddress}</p>
-          <p>privateKey: ${keyPairWIF}</p>
+          <p class=center><a href=https://github.com/own-your-money/standard target=_blank>before you start -> read the standard!</a></p>
+          <hr>
+          <div class=cards>
+            <a class=card href="?page=/generator" route target="_self">
+              <h4><span>👉 Generator</span></h4>
+            </a>
+            <a class=card href="?page=/test" route target="_self">
+              <h4><span>👉 Test</span></h4>
+            </a>
+          </div>
         </main>
-        <footer>footer</footer>
+        <footer>${this.footer}</footer>
       </section>
     `
     return Promise.resolve()

@@ -6,9 +6,11 @@
  */
 
 :root {
-  --background-color: black;
+  --a-color-hover: #00FF00;
+  --a-color: #008F11;
+  --background-color: #212121;
   --color: white;
-  --font-family: Arial, sans-serif;
+  --font-family: Tahoma, Helvetica, Arial, sans-serif;
   --font-size-mobile: min(14px, 5vw);
   --font-size: max(16px, 0.8vw);
   --font-weight: 400;
@@ -22,11 +24,13 @@
   --h2-color: var(--color-secondary);
   --h2-font-size: 3.5em;
   --h3-color: var(--color);
-  --h3-font-size: 1.25em;
+  --h3-font-size: 1.8em;
   --h4-color: var(--color);
   --h4-font-family: var(--font-family);
-  --h4-font-size: 1em;
+  --h4-font-size: 1.35em;
+  --hr-margin: 1em;
   --spacing: 0.5rem;
+  --text-decoration: underline;
   --transition: all 0.3s ease-out;
   background-color: var(--background-color, transparent);
   color: var(--color, white);

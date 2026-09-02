@@ -1,0 +1,4 @@
+- [ ] verification code includes query: amount as mBTC (expl. mbtc=0.1) & print timestamp (expl. echo=1787907295561) & producer (expl. prd=iris-swiss)
+- [ ] verification code includes hash: btcAddress
+- [ ] check if it is possible, to place a three digits CVC under the private key scratch label
+- [ ] save per print series: {amount, timestamp, btcAddress, CVC} forget immediately: keyPair -> privateKey

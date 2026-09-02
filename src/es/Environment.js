@@ -7,8 +7,8 @@ const currentScriptUrl = new URL(document.currentScript.src)
 self.Environment = {
   isTestingEnv: location.hostname === 'localhost',
   language: currentScriptUrl.searchParams.get('language') || document.documentElement.getAttribute('lang') || navigator.language || 'en',
-  stage: currentScriptUrl.searchParams.get('stage') || document.documentElement.getAttribute('stage') || '',
-  version: `version=${currentScriptUrl.searchParams.get('version') || document.documentElement.getAttribute('version') || '2.3.9'}`, // https://semver.org/
+  stage: currentScriptUrl.searchParams.get('stage') || document.documentElement.getAttribute('stage') || 'beta',
+  version: `version=${currentScriptUrl.searchParams.get('version') || document.documentElement.getAttribute('version') || '0.0.1'}`, // https://semver.org/
   /**
    * Get custom mobile breakpoint
    * @param {{constructor?: string, tagName?: string, namespace?: string}} organism
