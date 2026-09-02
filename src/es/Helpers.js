@@ -19,10 +19,20 @@ export const getBitcoinAddress = publicKey => {
   }).address || false
 }
 
+/**
+ * Test the keyPair and return keyPairWIF + bitcoinAddress
+ * 
+ * @name testKeyPair
+ * @kind variable
+ * @param {any} keyPair
+ * @returns {{ keyPair?: any; keyPairWIF?: any; bitcoinAddress?: string; result: boolean; toFromWIF: boolean; pointFromScalar: boolean; p2wpkh: boolean; error?: Error; }}
+ * @exports
+ */
 export const testKeyPair = keyPair => {
   const tests = {}
   // test privateKey toWIF + fromWIF
-  const keyPairFromWIF = ECPairFactory(ecc).fromWIF(keyPair.toWIF()/* equals privateKey */, bitcoin.networks.bitcoin)
+  const keyPairWIF = keyPair.toWIF()/* equals privateKey */
+  const keyPairFromWIF = ECPairFactory(ecc).fromWIF(keyPairWIF, bitcoin.networks.bitcoin)
   // @ts-ignore
   tests.toFromWIF = Buffer.from(keyPairFromWIF.privateKey).equals(Buffer.from(keyPair.privateKey))
   // test publicKey pointFromScalar
@@ -33,6 +43,6 @@ export const testKeyPair = keyPair => {
   const bitcoinAddress = getBitcoinAddress(keyPair.publicKey)
   // @ts-ignore
   tests.p2wpkh = bitcoinAddress === getBitcoinAddress(Buffer.from(derivedPubkey)) && bitcoinAddress === getBitcoinAddress(keyPairFromWIF.publicKey)
-  if (Object.keys(tests).every(key => tests[key])) return {...tests, result: true}
+  if (Object.keys(tests).every(key => tests[key])) return {...tests, keyPair, keyPairWIF, bitcoinAddress, result: true}
   return {...tests, error: new Error('Some tests did not pass!'), result: false}
 }

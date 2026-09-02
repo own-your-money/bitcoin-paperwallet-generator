@@ -27,7 +27,7 @@ export default class Index extends Shadow() {
     const showPromises = []
     if (this.shouldRenderCSS()) showPromises.push(this.renderCSS())
     if (this.shouldRenderHTML()) showPromises.push(this.renderHTML())
-    Promise.all(showPromises).then(() => (this.hidden = false))
+    return Promise.all(showPromises).then(() => (this.hidden = false))
   }
 
   /**
@@ -97,10 +97,12 @@ export default class Index extends Shadow() {
         grid-area: header;
         text-align: center;
       }
-      :host > section > body {
+      :host > section > main {
         grid-area: body;
+        overflow: auto;
       }
       :host > section > footer {
+        padding-top: 1em;
         grid-area: footer;
       }
       @media only screen and (max-width: _max-width_) {
