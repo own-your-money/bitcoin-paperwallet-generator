@@ -81,16 +81,21 @@ export default class Index extends Shadow() {
           display: flex;
           gap: 1em;
           justify-content: space-between;
+          container-type: inline-size;
+          &.single {
+            justify-content: center;
+          }
         }
         .card {
           align-items: center;
-          background-color: white;
-          border-radius: 7em;
+          background-color: lightsteelblue;
+          border-radius: 2em;
           display: flex;
-          height: calc(50svw - 2em);
+          height: calc(50cqw - 0.5em);
           max-height: 50svh;
           justify-content: center;
-          width: calc(50svw - 2em);
+          width: calc(50cqw - 0.5em);
+          font-size: 5cqw;
         }
       }
       :host > section > header {
@@ -119,7 +124,7 @@ export default class Index extends Shadow() {
             align-items: center;
           }
           .card {
-            border-radius: 3em;
+            border-radius: 1em;
           }
         }
       }
@@ -154,20 +159,19 @@ export default class Index extends Shadow() {
     this.html = /* html */`
       <section>
         <header>
+          <img class=oym-img src="./src/img/OYM.png" />
           <h1>Welcome to</h1>
-          <a href="https://ownyour.money/" target=_blank><img class=oym-img src="./src/img/OYM.png" /></a>
-          <br>
-          <h3 class=center>ownyour.money</h3>
+          <a href="https://ownyour.money/" target=_blank><h3 class=center>ownyour.money</h3></a>
+          <p class=center><a href=https://github.com/own-your-money/standard target=_blank>👉 before you start -> read the standard!</a></p>
         </header>
         <main>
-          <p class=center><a href=https://github.com/own-your-money/standard target=_blank>before you start -> read the standard!</a></p>
           <hr>
           <div class=cards>
-            <a class=card href="?page=/generator" route target="_self">
-              <h4><span>👉 Generator</span></h4>
+            <a class=card href="?page=/card" route target="_self">
+              <h4><span>Start production!</span></h4>
             </a>
             <a class=card href="?page=/test" route target="_self">
-              <h4><span>👉 Test</span></h4>
+              <h4><span>Test!</span></h4>
             </a>
           </div>
         </main>

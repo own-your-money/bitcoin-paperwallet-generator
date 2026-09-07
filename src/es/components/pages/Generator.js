@@ -1,7 +1,6 @@
 // @ts-check
-import Index from './Index.js'
-import { WebWorker } from '../../event-driven-web-components-prototypes/src/WebWorker.js'
-import { getKeyPair, getBitcoinAddress, testKeyPair } from '../../Helpers.js'
+import Card from './Card.js'
+import { getKeyPair, testKeyPair } from '../../Helpers.js'
 
 /**
 * Generator Main/Start Page
@@ -11,15 +10,9 @@ import { getKeyPair, getBitcoinAddress, testKeyPair } from '../../Helpers.js'
 * @type {CustomElementConstructor}
 */
 // @ts-ignore
-export default class Generator extends WebWorker(Index) {
+export default class Generator extends Card {
   constructor (options, ...args) {
     super(options, ...args)
-
-    this.inputBackgroundChangeEventListener = event => {
-      const file = this.inputBackgroundOne.files?.[0]
-      if (!file) return
-      this.inputBackgroundOneImg.src = URL.createObjectURL(file)
-    }
 
     this.buttonGenerateKeysClickEventListener = event => {
       self.requestAnimationFrame(timeStamp => {
@@ -32,20 +25,16 @@ export default class Generator extends WebWorker(Index) {
         })
       })
     }
-
-    // @ts-ignore
-    this.footer = `<a href="https://github.com/own-your-money/bitcoin-paperwallet-generator" target="_blank">© OYM / ${Environment.stage} ${Environment.version}</a>`
   }
 
   connectedCallback () {
-    super.connectedCallback()
-    this.inputBackgroundOne.addEventListener('change', this.inputBackgroundChangeEventListener)
+    const result = super.connectedCallback()
     this.buttonGenerateKeys.addEventListener('click', this.buttonGenerateKeysClickEventListener)
+    return result
   }
 
   disconnectedCallback () {
     super.disconnectedCallback()
-    this.inputBackgroundOne.removeEventListener('change', this.inputBackgroundChangeEventListener)
   }
 
   /**
@@ -70,17 +59,13 @@ export default class Generator extends WebWorker(Index) {
   *
   * @return {Promise<void>}
   */
-  renderHTML () {
+  async renderHTML () {
     this.html = /* html */`
       <section>
         <header>
-          <h1>OYM Generator</h1>
-          <p class=center>
-            <a href="?page=/" route target="_self"><span>👉 back</span></a>
-          </p>
-          <br>
+          <a href="?page=/" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
+          <h1 class=font-size-h2>Step Two: Generate your key pairs</h1>
           <section>
-            <input type="file" id="background-one" accept="image/*">
             <button id=generate-keys>generate Keys</button>
           </section>
           <br>
@@ -88,24 +73,22 @@ export default class Generator extends WebWorker(Index) {
         <main>
           <p>bitcoinAddress: <span bitcoin-address></span></p>
           <p>privateKey: <span private-key></span></p>
-          <img id=background-one-img />
+          <div class=grid>
+            <img id=background-two-img src="./src/img/oym__print_final2.jpg" />
+            <div id=avatar-img-container>
+              <img id=avatar-img />
+            </div>
+          </div>
         </main>
         <footer>${this.footer}</footer>
       </section>
     `
-    return Promise.resolve()
+    const avatarFile = await this.webWorker(Generator.loadFile, self.localStorage.getItem('avatarFileName') || 'avatar.jpg')
+    this.imgAvatar.src = URL.createObjectURL(avatarFile)
   }
 
   generateKey () {
     return testKeyPair(getKeyPair())
-  }
-
-  get inputBackgroundOne () {
-    return this.root.querySelector('#background-one')
-  }
-
-  get inputBackgroundOneImg () {
-    return this.root.querySelector('#background-one-img')
   }
 
   get buttonGenerateKeys () {
