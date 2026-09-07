@@ -128,6 +128,15 @@ export default class Index extends Shadow() {
           }
         }
       }
+      @media print {
+        header, footer, .no-print {
+          display: none;
+        }
+        @page {
+          size: A4 landscape;
+          margin: 0;
+        }
+      }
     `
     return this.fetchTemplate()
   }

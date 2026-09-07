@@ -46,6 +46,7 @@ export default class Card extends WebWorker(Index) {
       }
       this.setAttribute('has-avatar', '')
       this.imgAvatar.src = URL.createObjectURL(file)
+      this.imgAvatar.scrollIntoView()
       const fileName = file.name.replace(/.*(\.[^.]+)$/, 'avatar$1')
       this.webWorker(Card.saveFile, fileName, await file.arrayBuffer())
       self.localStorage.setItem('avatarFileName', fileName)
@@ -69,6 +70,7 @@ export default class Card extends WebWorker(Index) {
   * @return {Promise<void>}
   */
   renderCSS () {
+    const result = super.renderCSS()
     this.css = /* css */ `
       :host > section > header > section {
         border: 1px solid var(--a-color);
@@ -83,18 +85,11 @@ export default class Card extends WebWorker(Index) {
           aspect-ratio: 709 / 1075; /* 5.7cm / 8.65cm */
           width: 100%;
         }
-        .grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          grid-template-rows: 1fr;
+        .card-with-img {
           width: calc(50cqw - 0.5em);
           position: relative;
           container-type: inline-size;
-          & > * {
-            grid-column: 1;
-            grid-row: 1;
-          }
-          #avatar-img-container {
+          .img-container {
             position: absolute;
             left: 12.5cqw;
             bottom: 18%;
@@ -106,7 +101,7 @@ export default class Card extends WebWorker(Index) {
             border: 1px solid black;
             border-radius: 1.55cqw;
             padding: 0.15em;
-            #avatar-img {
+            .img {
               max-width: 100%;
               max-height: 100%;
               border-radius: 1.55cqw;
@@ -121,7 +116,7 @@ export default class Card extends WebWorker(Index) {
         display: block;
       }
     `
-    return super.renderCSS()
+    return result
   }
 
   /**
@@ -145,14 +140,11 @@ export default class Card extends WebWorker(Index) {
         </header>
         <main>
           <div class="cards single">
-            <div class=grid>
+            <div class=card-with-img>
               <img id=background-two-img src="./src/img/oym__print_final2.jpg" />
-              <div id=avatar-img-container>
-                <img id=avatar-img />
+              <div class=img-container>
+                <img class="img avatar" />
               </div>
-            </div>
-            <div class=grid>
-              <img id=background-one-img src="./src/img/oym__print_final1.jpg" />
             </div>
           </div>
         </main>
@@ -162,6 +154,7 @@ export default class Card extends WebWorker(Index) {
     const avatarFile = await this.webWorker(Card.loadFile, self.localStorage.getItem('avatarFileName') || 'avatar.jpg')
     if (avatarFile) {
       this.imgAvatar.src = URL.createObjectURL(avatarFile)
+      this.imgAvatar.scrollIntoView()
       this.setAttribute('has-avatar', '')
     } else {
       this.removeAttribute('has-avatar')
@@ -194,6 +187,10 @@ export default class Card extends WebWorker(Index) {
   }
 
   get imgAvatar () {
-    return this.root.querySelector('#avatar-img')
+    return this.root.querySelector('.img.avatar')
+  }
+
+  get imgAvatars () {
+    return Array.from(this.root.querySelectorAll('.img.avatar'))
   }
 }

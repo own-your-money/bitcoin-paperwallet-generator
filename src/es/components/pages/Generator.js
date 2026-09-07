@@ -22,18 +22,26 @@ export default class Generator extends Card {
           const {bitcoinAddress, keyPairWIF} = this.generateKey()
           this.bitcoinAddressEls.forEach(el => (el.textContent = bitcoinAddress))
           this.privateKeyEls.forEach(el => (el.textContent = keyPairWIF))
+          self.print()
         })
       })
     }
+
+    this.beforeprintEventListener = event => console.log('****beforeprint*****')
+    this.afterprintEventListener = event => console.log('****afterprint*****')
   }
 
   connectedCallback () {
     const result = super.connectedCallback()
     this.buttonGenerateKeys.addEventListener('click', this.buttonGenerateKeysClickEventListener)
+    self.addEventListener('beforeprint', this.beforeprintEventListener)
+    self.addEventListener('afterprint', this.afterprintEventListener)
     return result
   }
 
   disconnectedCallback () {
+    self.removeEventListener('beforeprint', this.beforeprintEventListener)
+    self.removeEventListener('afterprint', this.afterprintEventListener)
     super.disconnectedCallback()
   }
 
@@ -43,15 +51,62 @@ export default class Generator extends Card {
   * @return {Promise<void>}
   */
   renderCSS () {
+    const result = super.renderCSS()
     this.css = /* css */ `
-      :host > section > header > section {
-        border: 1px solid var(--a-color);
-        display: flex;
-        gap: 1em;
-        padding: 1em;
+      :host > section {
+        & > header > section {
+          border: 1px solid var(--a-color);
+          display: flex;
+          gap: 1em;
+          padding: 1em;
+        }
+        & > main {
+          .cards {
+            gap: 0;
+            &:nth-child(even) {
+              transform: rotate(180deg);
+            }
+          }
+          .card-with-img {
+            width: 20%;
+          }
+        }
+      }
+      @media print {
+        :host > section {
+          display: block;
+          margin: 0;
+          & > main {
+            overflow: visible;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            & > .a4 {
+              display: flex;
+              flex-direction: column;
+              width: 297mm;
+              height: 210mm;
+              justify-content: center;
+              align-items: center;
+              break-after: page;
+              box-sizing: border-box;
+              padding: 5mm;
+              & > .cards {
+                width: 100%;
+              }
+              &:last-child {
+                break-after: auto;
+              }
+            }
+          }
+        }
+        @page {
+          size: landscape; /* or "portrait", or "A4 landscape" */
+        }
       }
     `
-    return super.renderCSS()
+    return result
   }
 
   /**
@@ -69,14 +124,26 @@ export default class Generator extends Card {
             <button id=generate-keys>generate Keys</button>
           </section>
           <br>
+          <p class=center><a href=https://github.com/own-your-money/standard/blob/main/SPECIFICATIONS/print.md target=_blank>👉 read the print procedure!</a></p>
+          <br>
         </header>
         <main>
-          <p>bitcoinAddress: <span bitcoin-address></span></p>
-          <p>privateKey: <span private-key></span></p>
-          <div class=grid>
-            <img id=background-two-img src="./src/img/oym__print_final2.jpg" />
-            <div id=avatar-img-container>
-              <img id=avatar-img />
+          <p class=no-print>bitcoinAddress: <span bitcoin-address></span></p>
+          <p class=no-print>privateKey: <span private-key></span></p>
+          <div class=a4>
+            <div class="cards">
+              ${this.renderCard('oym__print_final1.jpg', 5, [])}
+            </div>
+            <div class="cards">
+              ${this.renderCard('oym__print_final1.jpg', 5, [])}
+            </div>
+          </div>
+          <div class=a4>
+            <div class="cards">
+              ${this.renderCard('oym__print_final2.jpg', 5, ['avatar'])}
+            </div>
+            <div class="cards">
+              ${this.renderCard('oym__print_final2.jpg', 5, ['avatar'])}
             </div>
           </div>
         </main>
@@ -84,7 +151,27 @@ export default class Generator extends Card {
       </section>
     `
     const avatarFile = await this.webWorker(Generator.loadFile, self.localStorage.getItem('avatarFileName') || 'avatar.jpg')
-    this.imgAvatar.src = URL.createObjectURL(avatarFile)
+    const imgAvatarUrl = URL.createObjectURL(avatarFile)
+    this.imgAvatars.forEach(imgAvatar => imgAvatar.src = imgAvatarUrl)
+  }
+
+  renderCard(name, length, imgTypes) {
+    let result = ''
+    for (let index = 0; index < length; index++) {
+      result += /* html */`
+        <div class=card-with-img>
+          <img id=background-two-img src="./src/img/${name}" />
+          ${imgTypes.reduce((acc, curr) => /* html */`
+            ${acc}
+            <div class=img-container>
+              <img class="img ${curr}" />
+            </div>  
+          `, '')}
+          
+        </div>
+      `
+    }
+    return result
   }
 
   generateKey () {
