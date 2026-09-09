@@ -89,23 +89,48 @@ export default class Card extends WebWorker(Index) {
           width: calc(50cqw - 0.5em);
           position: relative;
           container-type: inline-size;
-          .img-container {
+          & > div {
             position: absolute;
-            left: 12.5cqw;
-            bottom: 18%;
-            width: 23cqw;
-            height: 23cqw;
             display: flex;
             justify-content: center;
             align-items: center;
             border: 1px solid black;
             border-radius: 1.55cqw;
             padding: 0.15em;
+            text-align: center;
+            font-size: 0.75em;
+            border-color: red;
+            color: red;
+          }
+          .avatar-container {
+            left: 12.5cqw;
+            bottom: 18%;
+            width: 23cqw;
+            height: 23cqw;
             .img {
               max-width: 100%;
               max-height: 100%;
               border-radius: 1.55cqw;
             }
+          }
+          .private-key-container {
+            left: 55.25cqw;
+            bottom: 35.25%;
+            width: 30cqw;
+            height: 30cqw;
+          }
+          .public-key-container {
+            left: 69.5cqw;
+            bottom: 71.5%;
+            width: 12.5cqw;
+            height: 14.5cqw;
+            font-size: 0.4em;
+          }
+          .verify-url-container {
+            left: 37.5cqw;
+            bottom: 20.5%;
+            width: 38cqw;
+            height: 34.5cqw;
           }
         }
       }
@@ -142,9 +167,15 @@ export default class Card extends WebWorker(Index) {
           <div class="cards single">
             <div class=card-with-img>
               <img id=background-two-img src="./src/img/oym__print_final2.jpg" />
-              <div class=img-container>
+              <div class=avatar-container>
                 <img class="img avatar" />
               </div>
+              <div class=private-key-container>placeholder private key</div>
+            </div>
+            <div class=card-with-img>
+              <img id=background-one-img src="./src/img/oym__print_final1.jpg" />
+              <div class=public-key-container>placeholder public key</div>
+              <div class=verify-url-container>placeholder verify url</div>
             </div>
           </div>
         </main>

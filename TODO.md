@@ -1,4 +1,5 @@
-- [ ] verification code includes query: amount as mBTC (expl. mbtc=0.1) & print timestamp (expl. echo=1787907295561) & producer (expl. prd=iris-swiss)
-- [ ] verification code includes hash: btcAddress
+- [x] verification code includes query: amount as mBTC (expl. mbtc=0.1) & print timestamp (expl. echo=1787907295561) & producer (expl. prd=iris-swiss)
+- [x] verification code includes hash: btcAddress
 - [ ] check if it is possible, to place a three digits CVC under the private key scratch label
 - [ ] save per print series: {amount, timestamp, btcAddress, CVC} forget immediately: keyPair -> privateKey
+- [ ] test qr codes: console.log('*********', testKeyPairWIFtoBitcoinAddress('L12qHu6hUBjsXz5Z4ryYYABGFwwoWgA6k7vXJ6EtLbiQ5yqoU9Y7', 'bc1q7g5dchyev59m69aenfn9qzsty9nyy72r7lp66u'))

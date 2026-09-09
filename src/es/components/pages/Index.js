@@ -129,6 +129,9 @@ export default class Index extends Shadow() {
         }
       }
       @media print {
+        :host {
+          --h-display: none;
+        }
         header, footer, .no-print {
           display: none;
         }
@@ -180,7 +183,7 @@ export default class Index extends Shadow() {
               <h4><span>Start production!</span></h4>
             </a>
             <a class=card href="?page=/test" route target="_self">
-              <h4><span>Test!</span></h4>
+              <h4><span>Test matching key pairs!</span></h4>
             </a>
           </div>
         </main>
@@ -188,5 +191,9 @@ export default class Index extends Shadow() {
       </section>
     `
     return Promise.resolve()
+  }
+
+  get section () {
+    return this.root.querySelector('section')
   }
 }

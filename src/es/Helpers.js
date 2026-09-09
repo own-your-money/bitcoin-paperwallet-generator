@@ -23,7 +23,6 @@ export const getBitcoinAddress = publicKey => {
  * Test the keyPair and return keyPairWIF + bitcoinAddress
  * 
  * @name testKeyPair
- * @kind variable
  * @param {any} keyPair
  * @returns {{ keyPair?: any; keyPairWIF?: any; bitcoinAddress?: string; result: boolean; toFromWIF: boolean; pointFromScalar: boolean; p2wpkh: boolean; error?: Error; }}
  * @exports
@@ -45,4 +44,19 @@ export const testKeyPair = keyPair => {
   tests.p2wpkh = bitcoinAddress === getBitcoinAddress(Buffer.from(derivedPubkey)) && bitcoinAddress === getBitcoinAddress(keyPairFromWIF.publicKey)
   if (Object.keys(tests).every(key => tests[key])) return {...tests, keyPair, keyPairWIF, bitcoinAddress, result: true}
   return {...tests, error: new Error('Some tests did not pass!'), result: false}
+}
+
+/**
+ * Test keyPairWIF with public bitcoinAddress
+ * 
+ * @name testKeyPairWIFtoBitcoinAddress
+ * @param {any} keyPairWIF
+ * @param {any} bitcoinAddress
+ * @returns {boolean}
+ * @exports
+ */
+export const testKeyPairWIFtoBitcoinAddress = (keyPairWIF, bitcoinAddress) => {
+  const derivedBitcoinAddress = getBitcoinAddress(ECPairFactory(ecc).fromWIF(keyPairWIF, bitcoin.networks.bitcoin).publicKey)
+  console.log('*********', derivedBitcoinAddress, bitcoinAddress)
+  return derivedBitcoinAddress === bitcoinAddress
 }
