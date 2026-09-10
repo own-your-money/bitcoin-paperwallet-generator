@@ -23,8 +23,8 @@ export default class Generator extends Card {
     this.buttonPrintClickEventListener = event => {
       this.dialogPrintSetting.showModal()
       this.dialogPrintSetting.addEventListener('click', event => {
-        this.dialogPrintSetting.close()
         self.print()
+        this.dialogPrintSetting.close()
       }, {once: true})
     }
 
@@ -44,6 +44,8 @@ export default class Generator extends Card {
 
     this.inputProducerNameChangeEventListener = event => self.localStorage.setItem('producer-name', event.target.value)
 
+    this.inputAmountChangeEventListener = event => self.localStorage.setItem('amount', event.target.value)
+
     let generationAvailable = true
     this.buttonGenerateKeysClickEventListener = event => {
       generationAvailable = false
@@ -51,17 +53,19 @@ export default class Generator extends Card {
         this.buttonGenerateKeys.textContent = 'Generating...'
         const verifyUrlOrigin =  this.inputVerifyUrlOrigin.value || this.inputVerifyUrlOrigin.getAttribute('placeholder')
         const producerName =  this.inputProducerName.value || 'unknown'
+        const amount = this.inputAmount.value || 0.0001
         const printTimeStamp = Date.now()
         self.requestAnimationFrame(timeStamp => {
           this.cards.forEach((cards, i) => {
             const {bitcoinAddress, keyPairWIF} = this.generateKey()
             cards.forEach(card => Array.from(card.querySelectorAll('div')).forEach(container => {
               if (container.classList.contains('verify-url-container')) {
-                // TODO: mbtc amount input field as well as amount print field in container
-                container.textContent = `${verifyUrlOrigin}?mbtc=0.1&timestamp=${printTimeStamp}&prd=${producerName}#${bitcoinAddress}`
+                // TODO: amount print field in container
+                container.textContent = `${verifyUrlOrigin}?btc=${amount}&timestamp=${printTimeStamp}&prd=${producerName}#${bitcoinAddress}`
               } else if (container.classList.contains('public-key-container')) {
                 container.textContent = `${i}: ${bitcoinAddress}`
               } else if (container.classList.contains('private-key-container')) {
+                // TODO: CVC print field in container
                 container.textContent = `${i}: ${keyPairWIF}`
               }
             }))
@@ -94,6 +98,7 @@ export default class Generator extends Card {
     this.inputPageTwoVerticalAdjust.addEventListener('change', this.inputPageTwoVerticalAdjustChangeEventListener)
     this.inputVerifyUrlOrigin.addEventListener('change', this.inputVerifyUrlOriginChangeEventListener)
     this.inputProducerName.addEventListener('change', this.inputProducerNameChangeEventListener)
+    this.inputAmount.addEventListener('change', this.inputAmountChangeEventListener)
     this.buttonGenerateKeys.addEventListener('click', this.buttonGenerateKeysClickEventListener)
     self.addEventListener('afterprint', this.afterprintEventListener)
     return result
@@ -109,6 +114,7 @@ export default class Generator extends Card {
     this.inputPageTwoVerticalAdjust.removeEventListener('change', this.inputPageTwoVerticalAdjustChangeEventListener)
     this.inputVerifyUrlOrigin.removeEventListener('change', this.inputVerifyUrlOriginChangeEventListener)
     this.inputProducerName.removeEventListener('change', this.inputProducerNameChangeEventListener)
+    this.inputAmount.removeEventListener('change', this.inputAmountChangeEventListener)
     this.buttonGenerateKeys.removeEventListener('click', this.buttonGenerateKeysClickEventListener)
     self.removeEventListener('afterprint', this.afterprintEventListener)
     super.disconnectedCallback()
@@ -124,6 +130,18 @@ export default class Generator extends Card {
     this.css = /* css */ `
       :host > section {
         & > header {
+          & > dialog {
+            margin: 0;
+            & > div > img {
+              display: none;
+            }
+          }
+          &:has(#edge-order:checked) > dialog > div > img.long-edge {
+            display: block;
+          }
+          &:has(#edge-order:not(:checked)) > dialog > div > img.short-edge {
+            display: block;
+          }
           #print-settings > div {
             display: flex;
             flex-direction: column;
@@ -151,7 +169,7 @@ export default class Generator extends Card {
                 & > div {
                   display: flex;
                   justify-content: space-between;
-                  &:where(.verify-url-origin, .producer-name) {
+                  &:where(.verify-url-origin, .producer-name, .amount) {
                     flex-direction: column;
                     justify-content: center;
                   }
@@ -186,6 +204,9 @@ export default class Generator extends Card {
       :host([mode=test]) > section{
         & > header > section > div > div {
           display: block;
+          &:has(> #edge-order) {
+            max-width: 10svw;
+          }
         }
         & > main .card-with-img {
           border: dotted 1px black;
@@ -200,6 +221,9 @@ export default class Generator extends Card {
       @media only screen and (max-width: _max-width_) {
         :host > section > header > section > div {
           flex-wrap: wrap;
+        }
+        :host([mode=test]) > section > header > section > div > div:has(> #edge-order) {
+          max-width: none;
         }
       }
       @media print {
@@ -252,16 +276,24 @@ export default class Generator extends Card {
     const verifyUrlOriginDefault = 'https://iris-swiss.com/'
     const verifyUrlOrigin = self.localStorage.getItem('verify-url-origin') || verifyUrlOriginDefault
     const producerName = self.localStorage.getItem('producer-name') || ''
+    const amount = self.localStorage.getItem('amount') || 0.0001
     this.html = /* html */`
       <section>
         <header>
+          <dialog id=print-settings>
+            <div>
+              <img class=long-edge src="./src/img/OYM-printer-settings-long-edge.png" />
+              <img class=short-edge src="./src/img/OYM-printer-settings-short-edge.png" />
+              <button>continue!</button>
+            </div>
+          </dialog>
           <a href="?page=/" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
           <h1 class=font-size-h2>Step Two: Generate your key pairs</h1>
           <section>
             <div>
               <div>
-                <input id=reverse-order ${self.localStorage.getItem('inputReverseOrder') === 'false' ? '' : 'checked'} type=checkbox>
-                <label for=reverse-order>reverse order (needed for duplex print)</label>
+                <input id=edge-order ${self.localStorage.getItem('inputReverseOrder') === 'false' ? '' : 'checked'} type=checkbox>
+                <label for=edge-order>Two-sided: Flip on long edge</label>
               </div>
               <div class=page-setting>
                 <h3>Adjust Page ONE position:</h3>
@@ -294,6 +326,10 @@ export default class Generator extends Card {
                   <label for=producer-name>Producer nickname</label>
                   <input id=producer-name type=text value="${producerName}">
                 </div>
+                <div class=amount>
+                  <label for=amount>Amount of bitcoin</label>
+                  <input id=amount type=text value="${amount}">
+                </div>
               </div>
               <div>
                 <button id=print-test-data>test print!</button>
@@ -305,13 +341,6 @@ export default class Generator extends Card {
           </section>
           <br>
           <p class=center><a href=https://github.com/own-your-money/standard/blob/main/SPECIFICATIONS/print.md target=_blank>👉 read the print procedure!</a></p>
-          <br>
-          <dialog id=print-settings>
-            <div>
-              <img src="./src/img/OYM-printer-settings.png" />
-              <button>continue!</button>
-            </div>
-          </dialog>
         </header>
         <main>
           <h3 class=no-print>Page ONE</h3>
@@ -382,7 +411,7 @@ export default class Generator extends Card {
   }
 
   get inputReverseOrder () {
-    return this.root.querySelector('#reverse-order')
+    return this.root.querySelector('#edge-order')
   }
 
   get inputPageOneHorizontalAdjust () {
@@ -409,6 +438,10 @@ export default class Generator extends Card {
     return this.root.querySelector('#producer-name')
   }
 
+  get inputAmount () {
+    return this.root.querySelector('#amount')
+  }
+
   get dialogPrintSetting () {
     return this.root.querySelector('#print-settings')
   }
@@ -419,9 +452,17 @@ export default class Generator extends Card {
 
   get cards () {
     return Array.from(this.root.querySelectorAll('.a4')).reduce((acc, page, i) => {
-      const cards = Array.from(page.querySelectorAll('.cards > *'))
+      let cards = Array.from(page.querySelectorAll('.cards > *'))
       // duplex print fix
-      if (i === 1 && this.inputReverseOrder.checked) cards.reverse()
+      if (i === 1) {
+        if (this.inputReverseOrder.checked) {
+          // Flip on long edge, reverse the second pages all cards
+          cards.reverse()
+        } else {
+          // Flip on short side, reverse the second pages each stack of cards separately
+          cards = Array.from(page.querySelectorAll('.cards')).reduce((acc, cardsParent) => [...acc, ...Array.from(cardsParent.children).reverse()], [])
+        }
+      }
       cards.forEach((card, i) => {
         if (Array.isArray(acc[i])) {
           acc[i].push(card)

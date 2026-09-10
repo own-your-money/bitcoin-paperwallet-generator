@@ -75,6 +75,7 @@ export default class Card extends WebWorker(Index) {
       :host > section > header > section {
         border: 1px solid var(--a-color);
         display: flex;
+        flex-wrap: wrap;
         gap: 1em;
         padding: 1em;
         justify-content: space-between;
@@ -140,6 +141,11 @@ export default class Card extends WebWorker(Index) {
       :host([has-avatar]) #next-step {
         display: block;
       }
+      @media only screen and (max-width: _max-width_) {
+        :host section .cards {
+          flex-direction: row;
+        }
+      }
     `
     return result
   }
@@ -161,7 +167,6 @@ export default class Card extends WebWorker(Index) {
           </section>
           <br>
           <p class=center><a href=https://github.com/own-your-money/standard/blob/main/SPECIFICATIONS/print.md target=_blank>👉 read the print procedure!</a></p>
-          <br>
         </header>
         <main>
           <div class="cards single">

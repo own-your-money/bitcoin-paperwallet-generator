@@ -27,7 +27,10 @@ export default class Index extends Shadow() {
     const showPromises = []
     if (this.shouldRenderCSS()) showPromises.push(this.renderCSS())
     if (this.shouldRenderHTML()) showPromises.push(this.renderHTML())
-    return Promise.all(showPromises).then(() => (this.hidden = false))
+    return Promise.all(showPromises).then(() => {
+      this.hidden = false
+      this.root.querySelector('header > *:last-child').scrollIntoView()
+    })
   }
 
   /**
@@ -101,6 +104,9 @@ export default class Index extends Shadow() {
       :host > section > header {
         grid-area: header;
         text-align: center;
+        max-height: 40svh;
+        overflow: auto;
+        padding-bottom: 1em;
       }
       :host > section > main {
         grid-area: body;
