@@ -11,68 +11,128 @@ import { getKeyPair, testKeyPair } from '../../Helpers.js'
 */
 // @ts-ignore
 export default class Generator extends Card {
-  constructor (options, ...args) {
-    super(options, ...args)
+  constructor (options = {}, ...args) {
+    super({ importMetaUrl: import.meta.url, ...options }, ...args)
 
-    this.buttonGenerateTestDataClickEventListener = event => {
-      this.setAttribute('mode', 'test')
-      self.localStorage.setItem('inputReverseOrder', this.inputReverseOrder.checked)
-      this.cards.forEach((cards, i) => cards.forEach(card => Array.from(card.querySelectorAll('div')).forEach(container => container.textContent = `${Array.from(container.classList).reduce((acc, curr) => (acc = `${acc ? `${acc}, ` : ''}${curr}`, ''))} CARD: ${i}`)))
+    this.buttonGenerateTestDataClickEventListener = (event, hidingQR = false) => {
+      if (!hidingQR) {
+        this.setAttribute('mode', 'test')
+        this.storageMerge('flipOnLongSide', this.flipOnLongSide.checked)
+        this.storageMerge('cardCount', this.cardCount.value)
+      }
+      this.cards.forEach((cards, i) => cards.forEach(card => {
+        if (i >= this.cardCount.value) {
+          card.classList.add('hidden')
+        } else {
+          card.classList.remove('hidden')
+        }
+        Array.from(card.querySelectorAll('div')).forEach(container => container.textContent = `${Array.from(container.classList).reduce((acc, curr) => (acc = `${acc ? `${acc}, ` : ''}${curr}`, ''))} CARD: ${i}`)
+      }))
     }
 
     this.buttonPrintClickEventListener = event => {
+      if (!this.inputProducerName.value) {
+        this.inputProducerName.focus()
+        return alert('Producer nickname is required!')
+      }
+      if (this.inputVerifyUrlOrigin.value) {
+        try {
+          new URL(this.inputVerifyUrlOrigin.value)
+        } catch (error) {
+          this.inputVerifyUrlOrigin.focus()
+          return alert('Verify URL origin is invalid!')
+        }
+      }
       this.dialogPrintSetting.showModal()
-      this.dialogPrintSetting.addEventListener('click', event => {
+      const clickEvent = event => {
         self.print()
         this.dialogPrintSetting.close()
+      }
+      this.dialogPrintSetting.addEventListener('click', clickEvent, {once: true})
+      this.dialogPrintSetting.addEventListener('close', event => {
+        this.buttonGenerateTestDataClickEventListener(event, true)
+        this.dialogPrintSetting.removeEventListener('click', clickEvent)
       }, {once: true})
     }
 
     this.buttonSkipClickEventListener = event => this.setAttribute('mode', 'test-success')
 
-    const pageAdjustFunc = (name, value, direction) => {
-      const key = `${name}-${direction}-adjust`
-      this.root.querySelector(`.${name}`).setAttribute(key, value)
-      self.localStorage.setItem(key, value)
+    const pageAdjustFunc = (selector, name, value, direction) => {
+      const key = `${name}${direction}adjust`
+      this.root.querySelector(`.${selector}`).setAttribute(key, value)
+      this.storageMerge(key, value)
     }
-    this.inputPageOneHorizontalAdjustChangeEventListener = event => pageAdjustFunc('page-one', event.target.value, 'horizontal')
-    this.inputPageOneVerticalAdjustChangeEventListener = event => pageAdjustFunc('page-one', event.target.value, 'vertical')
-    this.inputPageTwoHorizontalAdjustChangeEventListener = event => pageAdjustFunc('page-two', event.target.value, 'horizontal')
-    this.inputPageTwoVerticalAdjustChangeEventListener = event => pageAdjustFunc('page-two', event.target.value, 'vertical')
+    this.inputPageOneHorizontalAdjustChangeEventListener = event => pageAdjustFunc('page-one', 'pageOne', event.target.value, 'horizontal')
+    this.inputPageOneVerticalAdjustChangeEventListener = event => pageAdjustFunc('page-one', 'pageOne', event.target.value, 'vertical')
+    this.inputPageTwoHorizontalAdjustChangeEventListener = event => pageAdjustFunc('page-two', 'pageTwo', event.target.value, 'horizontal')
+    this.inputPageTwoVerticalAdjustChangeEventListener = event => pageAdjustFunc('page-two', 'pageTwo', event.target.value, 'vertical')
 
-    this.inputVerifyUrlOriginChangeEventListener = event => self.localStorage.setItem('verify-url-origin', event.target.value)
+    this.inputVerifyUrlOriginChangeEventListener = event => this.storageMerge('verifyUrlOrigin', event.target.value)
 
-    this.inputProducerNameChangeEventListener = event => self.localStorage.setItem('producer-name', event.target.value)
+    this.inputProducerNameChangeEventListener = event => this.storageMerge('producerName', event.target.value)
 
-    this.inputAmountChangeEventListener = event => self.localStorage.setItem('amount', event.target.value)
+    this.inputAmountChangeEventListener = event => this.storageMerge('amount', event.target.value)
 
     let generationAvailable = true
     this.buttonGenerateKeysClickEventListener = event => {
+      if (!generationAvailable) return
+      if (navigator.onLine && !confirm('Go offline for printing... are you offline?')) return
       generationAvailable = false
       self.requestAnimationFrame(timeStamp => {
         this.buttonGenerateKeys.textContent = 'Generating...'
         const verifyUrlOrigin =  this.inputVerifyUrlOrigin.value || this.inputVerifyUrlOrigin.getAttribute('placeholder')
         const producerName =  this.inputProducerName.value || 'unknown'
+        const currency = 'btc'
         const amount = this.inputAmount.value || 0.0001
         const printTimeStamp = Date.now()
-        self.requestAnimationFrame(timeStamp => {
-          this.cards.forEach((cards, i) => {
+        /** @type {{verifyUrlOrigin: string, producerName: string, currency: string, amount: string, printTimeStamp: number, bitcoinAddresses: string[]}} */
+        this.printData = {
+          verifyUrlOrigin,
+          producerName,
+          currency,
+          amount,
+          printTimeStamp,
+          bitcoinAddresses: []
+        }
+        self.requestAnimationFrame(async timeStamp => {
+          await Promise.all(this.cards.flatMap(cards => {
+            if (cards[0].classList.contains('hidden')) return Promise.resolve()
             const {bitcoinAddress, keyPairWIF} = this.generateKey()
-            cards.forEach(card => Array.from(card.querySelectorAll('div')).forEach(container => {
+            if (!bitcoinAddress || !keyPairWIF) return console.error('Key generation did not work:', {bitcoinAddress, keyPairWIF})
+            this.printData.bitcoinAddresses.push(bitcoinAddress)
+            return cards.flatMap(card => Array.from(card.querySelectorAll('div')).flatMap(async container => {
               if (container.classList.contains('verify-url-container')) {
-                // TODO: amount print field in container
-                container.textContent = `${verifyUrlOrigin}?btc=${amount}&timestamp=${printTimeStamp}&prd=${producerName}#${bitcoinAddress}`
+                container.innerHTML = /* html */`
+                  <span>${amount}&nbsp;${currency.toUpperCase()}</span>
+                `
+                const canvas = await this.#getQrCanvas(`${verifyUrlOrigin}?cur=${currency}&amt=${amount}&ts=${printTimeStamp}&prd=${producerName}#${bitcoinAddress}`, container)
+                container.appendChild(canvas)
               } else if (container.classList.contains('public-key-container')) {
-                container.textContent = `${i}: ${bitcoinAddress}`
+                container.innerHTML = ''
+                const canvas = await this.#getQrCanvas(bitcoinAddress, container)
+                container.appendChild(canvas)
               } else if (container.classList.contains('private-key-container')) {
-                // TODO: CVC print field in container
-                container.textContent = `${i}: ${keyPairWIF}`
+                container.innerHTML = /* html */`
+                  <span class=cvc>${self.crypto.randomUUID().replace(/^.*-/, '').substring(0, 7)}</span>
+                `
+                const canvas = await this.#getQrCanvas(keyPairWIF, container)
+                container.appendChild(canvas)
+              } else if (container.classList.contains('avatar-container')) {
+                container.innerHTML = ''
+                const img = document.createElement('img')
+                const avatarFile = await this.webWorker(Generator.loadFile, await this.storageGet('avatarFileName') || 'avatar.jpg')
+                if (avatarFile) {
+                  img.setAttribute('src', URL.createObjectURL(avatarFile))
+                  container.appendChild(img)
+                } else {
+                  container.innerHTML = '<h5>Warning: Avatar file is missing...</h5>'
+                }
               }
             }))
-          })
-          this.buttonPrintClickEventListener()
+          }))
           this.buttonGenerateKeys.textContent = 'Generate keys and print!'
           generationAvailable = true
+          this.buttonPrintClickEventListener()
         })
       })
     }
@@ -80,26 +140,47 @@ export default class Generator extends Card {
     this.afterprintEventListener = event => {
       if (this.getAttribute('mode') === 'test') {
         if (self.confirm('Did your test data print succeed?')) this.setAttribute('mode', 'test-success')
-      } else {
-        this.setAttribute('mode', 'done')
+      } else if (this.printData && this.getAttribute('mode') === 'test-success') {
+        if (self.confirm('Did your production print succeed?')) {
+          this.setAttribute('mode', 'done')
+          // bugfix: needs a timeout to trigger, reason unknown
+          setTimeout(event => {
+            this.dispatchEvent(new CustomEvent('storage-merge', {
+              detail: {
+                key: 'printSeries',
+                value: {
+                  [this.printData.printTimeStamp]: this.printData
+                }
+              },
+              bubbles: true,
+              cancelable: true,
+              composed: true
+            }))
+            history.pushState({ ...history.state, pageTitle: 'Test the key pairs and print' }, '', `${location.origin}/?page=/test`)
+          }, 1)
+        }
       }
+      this.buttonGenerateTestDataClickEventListener(event, true)
     }
   }
 
   connectedCallback () {
     const result = super.connectedCallback()
-    this.buttonGenerateTestDataClickEventListener()
-    this.buttonPrintTestData.addEventListener('click', this.buttonPrintClickEventListener)
-    this.buttonSkipTest.addEventListener('click', this.buttonSkipClickEventListener)
-    this.inputReverseOrder.addEventListener('change', this.buttonGenerateTestDataClickEventListener)
-    this.inputPageOneHorizontalAdjust.addEventListener('change', this.inputPageOneHorizontalAdjustChangeEventListener)
-    this.inputPageOneVerticalAdjust.addEventListener('change', this.inputPageOneVerticalAdjustChangeEventListener)
-    this.inputPageTwoHorizontalAdjust.addEventListener('change', this.inputPageTwoHorizontalAdjustChangeEventListener)
-    this.inputPageTwoVerticalAdjust.addEventListener('change', this.inputPageTwoVerticalAdjustChangeEventListener)
-    this.inputVerifyUrlOrigin.addEventListener('change', this.inputVerifyUrlOriginChangeEventListener)
-    this.inputProducerName.addEventListener('change', this.inputProducerNameChangeEventListener)
-    this.inputAmount.addEventListener('change', this.inputAmountChangeEventListener)
-    this.buttonGenerateKeys.addEventListener('click', this.buttonGenerateKeysClickEventListener)
+    result.then(() => {
+      this.buttonGenerateTestDataClickEventListener()
+      this.buttonPrintTestData.addEventListener('click', this.buttonPrintClickEventListener)
+      this.buttonSkipTest.addEventListener('click', this.buttonSkipClickEventListener)
+      this.flipOnLongSide.addEventListener('change', this.buttonGenerateTestDataClickEventListener)
+      this.cardCount.addEventListener('change', this.buttonGenerateTestDataClickEventListener)
+      this.inputPageOneHorizontalAdjust.addEventListener('change', this.inputPageOneHorizontalAdjustChangeEventListener)
+      this.inputPageOneVerticalAdjust.addEventListener('change', this.inputPageOneVerticalAdjustChangeEventListener)
+      this.inputPageTwoHorizontalAdjust.addEventListener('change', this.inputPageTwoHorizontalAdjustChangeEventListener)
+      this.inputPageTwoVerticalAdjust.addEventListener('change', this.inputPageTwoVerticalAdjustChangeEventListener)
+      this.inputVerifyUrlOrigin.addEventListener('change', this.inputVerifyUrlOriginChangeEventListener)
+      this.inputProducerName.addEventListener('change', this.inputProducerNameChangeEventListener)
+      this.inputAmount.addEventListener('change', this.inputAmountChangeEventListener)
+      this.buttonGenerateKeys.addEventListener('click', this.buttonGenerateKeysClickEventListener)
+    })
     self.addEventListener('afterprint', this.afterprintEventListener)
     return result
   }
@@ -107,7 +188,8 @@ export default class Generator extends Card {
   disconnectedCallback () {
     this.buttonPrintTestData.removeEventListener('click', this.buttonPrintClickEventListener)
     this.buttonSkipTest.removeEventListener('click', this.buttonSkipClickEventListener)
-    this.inputReverseOrder.removeEventListener('change', this.buttonGenerateTestDataClickEventListener)
+    this.flipOnLongSide.removeEventListener('change', this.buttonGenerateTestDataClickEventListener)
+    this.cardCount.removeEventListener('change', this.buttonGenerateTestDataClickEventListener)
     this.inputPageOneHorizontalAdjust.removeEventListener('change', this.inputPageOneHorizontalAdjustChangeEventListener)
     this.inputPageOneVerticalAdjust.removeEventListener('change', this.inputPageOneVerticalAdjustChangeEventListener)
     this.inputPageTwoHorizontalAdjust.removeEventListener('change', this.inputPageTwoHorizontalAdjustChangeEventListener)
@@ -169,7 +251,7 @@ export default class Generator extends Card {
                 & > div {
                   display: flex;
                   justify-content: space-between;
-                  &:where(.verify-url-origin, .producer-name, .amount) {
+                  &:where(.verify-url-origin, .producer-name, .amount, .card-count) {
                     flex-direction: column;
                     justify-content: center;
                   }
@@ -198,6 +280,31 @@ export default class Generator extends Card {
           }
           .card-with-img {
             width: 20%;
+            &.hidden {
+              visibility: hidden;
+            }
+            & > div{
+              &:has(span) {
+                display: grid;
+                grid-template-columns: auto 1fr;
+              }
+              &:has(canvas, img) {
+                color: black;
+                border: 0;
+                span {
+                  transform: rotate(90deg);
+                  width: 0.75em;
+                  align-self: flex-start;
+                  margin-top: -0.55em;
+                  height: 0.6em;
+                  &.cvc {
+                    width: 0.85em;
+                    padding-left: 0.5em;
+                    margin-top: 0;
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -215,7 +322,7 @@ export default class Generator extends Card {
           }
         }
       }
-      :host([mode=test-success]) > section > header > section #generate-keys, :host([mode=done]) > section > header > section :is(#done, #generate-keys) {
+      :host([mode=test-success]) > section > header > section #generate-keys, :host([mode=done]) > section > header > section #done {
         display: block;
       }
       @media only screen and (max-width: _max-width_) {
@@ -236,6 +343,9 @@ export default class Generator extends Card {
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            .card-with-img .private-key-container canvas {
+              filter: none;
+            }
             & > .a4 {
               display: flex;
               flex-direction: column;
@@ -269,14 +379,14 @@ export default class Generator extends Card {
   * @return {Promise<void>}
   */
   async renderHTML () {
-    const pageOneHorizontalAdjust = self.localStorage.getItem('page-one-horizontal-adjust') || 0
-    const pageOneVerticalAdjust = self.localStorage.getItem('page-one-vertical-adjust') || 0
-    const pageTwoHorizontalAdjust = self.localStorage.getItem('page-two-horizontal-adjust') || 0
-    const pageTwoVerticalAdjust = self.localStorage.getItem('page-two-vertical-adjust') || 0
+    const pageOneHorizontalAdjust = await this.storageGet('pageOnehorizontaladjust') || 0
+    const pageOneVerticalAdjust = await this.storageGet('pageOneverticaladjust') || 0
+    const pageTwoHorizontalAdjust = await this.storageGet('pageTwohorizontaladjust') || 0
+    const pageTwoVerticalAdjust = await this.storageGet('pageTwoverticaladjust') || 0
     const verifyUrlOriginDefault = 'https://iris-swiss.com/'
-    const verifyUrlOrigin = self.localStorage.getItem('verify-url-origin') || verifyUrlOriginDefault
-    const producerName = self.localStorage.getItem('producer-name') || ''
-    const amount = self.localStorage.getItem('amount') || 0.0001
+    const verifyUrlOrigin = await this.storageGet('verifyUrlOrigin') || verifyUrlOriginDefault
+    const producerName = await this.storageGet('producerName') || ''
+    const amount = await this.storageGet('amount') || 0.0001
     this.html = /* html */`
       <section>
         <header>
@@ -292,8 +402,15 @@ export default class Generator extends Card {
           <section>
             <div>
               <div>
-                <input id=edge-order ${self.localStorage.getItem('inputReverseOrder') === 'false' ? '' : 'checked'} type=checkbox>
-                <label for=edge-order>Two-sided: Flip on long edge</label>
+                <div>
+                  <input id=edge-order ${await this.storageGet('flipOnLongSide') === 'false' ? '' : 'checked'} type=checkbox>
+                  <label for=edge-order>Two-sided: Flip on long edge</label>
+                </div>
+                <hr>
+                <div class=card-count>
+                  <label for=card-count>Cards to print:</label>
+                  <input id=card-count type=number min=1 max=10 value=${await this.storageGet('cardCount') || 10}>
+                </div>
               </div>
               <div class=page-setting>
                 <h3>Adjust Page ONE position:</h3>
@@ -324,7 +441,7 @@ export default class Generator extends Card {
                 </div>
                 <div class=producer-name>
                   <label for=producer-name>Producer nickname</label>
-                  <input id=producer-name type=text value="${producerName}">
+                  <input required id=producer-name type=text value="${producerName}">
                 </div>
                 <div class=amount>
                   <label for=amount>Amount of bitcoin</label>
@@ -337,7 +454,7 @@ export default class Generator extends Card {
               </div>
             </div>
             <button id=generate-keys>Generate keys and print!</button>
-            <a id=done href="?page=/test" route target="_self">Finally: Test matching key pairs!</a>
+            <a id=done href="?page=/test" route target="_self">Next Step: Test matching key pairs!</a>
           </section>
           <br>
           <p class=center><a href=https://github.com/own-your-money/standard/blob/main/SPECIFICATIONS/print.md target=_blank>👉 read the print procedure!</a></p>
@@ -374,12 +491,12 @@ export default class Generator extends Card {
         <footer>${this.footer}</footer>
       </section>
     `
-    const avatarFile = await this.webWorker(Generator.loadFile, self.localStorage.getItem('avatarFileName') || 'avatar.jpg')
+    const avatarFile = await this.webWorker(Generator.loadFile, await this.storageGet('avatarFileName') || 'avatar.jpg')
     const imgAvatarUrl = URL.createObjectURL(avatarFile)
     this.imgAvatars.forEach(imgAvatar => imgAvatar.src = imgAvatarUrl)
   }
 
-  renderCard(name, length, imgTypes) {
+  renderCard (name, length, imgTypes) {
     let result = ''
     for (let index = 0; index < length; index++) {
       result += /* html */`
@@ -402,6 +519,68 @@ export default class Generator extends Card {
     return testKeyPair(getKeyPair())
   }
 
+  storageGet (propKey) {
+    return new Promise(resolve => this.dispatchEvent(new CustomEvent('storage-get', {
+      detail: {
+        key: 'printSettings',
+        resolve
+      },
+      bubbles: true,
+      cancelable: true,
+      composed: true
+    }))).then(data => data.value[propKey])
+  }
+
+  storageMerge (propKey, value) {
+    this.dispatchEvent(new CustomEvent('storage-merge', {
+      detail: {
+        key: 'printSettings',
+        value: {
+          [propKey]: value
+        }
+      },
+      bubbles: true,
+      cancelable: true,
+      composed: true
+    }))
+  }
+
+  #getQrCanvas (text, container) {
+    return this.loadDependency('QRCode', `${this.importMetaUrl}../../libs/qrcode.min.js`).then(QRCode => {
+      if (!text || text.length > 1264) {
+        return container.innerHTML = '<h5>Warning: String too long! The qr code can not be generated...</h5>'
+      }
+      const canvas = document.createElement('canvas')
+      QRCode.toCanvas(canvas, text, {
+        margin: 0
+      })
+      canvas.setAttribute('style', 'height: auto; width: auto; max-height: 100%; max-width: 100%;')
+      return canvas
+    })
+  }
+
+  /**
+   * fetch dependency
+   *
+   * @returns {Promise<any>}
+   */
+  loadDependency (globalNamespace, url) {
+    // make it global to self so that other components can know when it has been loaded
+    return this[`_loadDependency${globalNamespace}`] || (this[`_loadDependency${globalNamespace}`] = new Promise((resolve, reject) => {
+      // @ts-ignore
+      if (document.head.querySelector(`#${globalNamespace}`) || self[globalNamespace]) return resolve(self[globalNamespace])
+      const script = document.createElement('script')
+      script.setAttribute('id', globalNamespace)
+      script.setAttribute('src', url)
+      // @ts-ignore
+      script.onload = () => self[globalNamespace]
+        // @ts-ignore
+        ? resolve(self[globalNamespace])
+        : reject(new Error(`${globalNamespace} does not load into the global scope!`))
+      document.head.appendChild(script)
+    }))
+  }
+
   get buttonPrintTestData () {
     return this.root.querySelector('#print-test-data')
   }
@@ -410,8 +589,12 @@ export default class Generator extends Card {
     return this.root.querySelector('#skip-test')
   }
 
-  get inputReverseOrder () {
+  get flipOnLongSide () {
     return this.root.querySelector('#edge-order')
+  }
+
+  get cardCount () {
+    return this.root.querySelector('#card-count')
   }
 
   get inputPageOneHorizontalAdjust () {
@@ -455,7 +638,7 @@ export default class Generator extends Card {
       let cards = Array.from(page.querySelectorAll('.cards > *'))
       // duplex print fix
       if (i === 1) {
-        if (this.inputReverseOrder.checked) {
+        if (this.flipOnLongSide.checked) {
           // Flip on long edge, reverse the second pages all cards
           cards.reverse()
         } else {

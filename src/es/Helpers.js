@@ -56,7 +56,5 @@ export const testKeyPair = keyPair => {
  * @exports
  */
 export const testKeyPairWIFtoBitcoinAddress = (keyPairWIF, bitcoinAddress) => {
-  const derivedBitcoinAddress = getBitcoinAddress(ECPairFactory(ecc).fromWIF(keyPairWIF, bitcoin.networks.bitcoin).publicKey)
-  console.log('*********', derivedBitcoinAddress, bitcoinAddress)
-  return derivedBitcoinAddress === bitcoinAddress
+  return getBitcoinAddress(ECPairFactory(ecc).fromWIF(keyPairWIF, bitcoin.networks.bitcoin).publicKey) === bitcoinAddress
 }

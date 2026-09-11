@@ -3,7 +3,7 @@ import Index from './Index.js'
 import { WebWorker } from '../../event-driven-web-components-prototypes/src/WebWorker.js'
 
 /**
-* Card Main/Start Page
+* Test Main/Start Page
 *
   async function listAllOPFSFiles(dirHandle, path = "") {
     for await (const [name, handle] of dirHandle.entries()) {
@@ -34,7 +34,7 @@ import { WebWorker } from '../../event-driven-web-components-prototypes/src/WebW
 * @type {CustomElementConstructor}
 */
 // @ts-ignore
-export default class Card extends WebWorker(Index) {
+export default class Test extends WebWorker(Index) {
   constructor (options, ...args) {
     super(options, ...args)
 
@@ -48,7 +48,7 @@ export default class Card extends WebWorker(Index) {
       this.imgAvatar.src = URL.createObjectURL(file)
       this.imgAvatar.scrollIntoView()
       const fileName = file.name.replace(/.*(\.[^.]+)$/, 'avatar$1')
-      this.webWorker(Card.saveFile, fileName, await file.arrayBuffer())
+      this.webWorker(Test.saveFile, fileName, await file.arrayBuffer())
       this.dispatchEvent(new CustomEvent('storage-merge', {
         detail: {
           key: 'printSettings',
@@ -96,7 +96,7 @@ export default class Card extends WebWorker(Index) {
           aspect-ratio: 709 / 1075; /* 5.7cm / 8.65cm */
           width: 100%;
         }
-        .card-with-img {
+        .test-with-img {
           width: calc(50cqw - 0.5em);
           position: relative;
           container-type: inline-size;
@@ -155,7 +155,7 @@ export default class Card extends WebWorker(Index) {
         display: block;
       }
       @media only screen and (max-width: _max-width_) {
-        :host section .cards {
+        :host section .tests {
           flex-direction: row;
         }
       }
@@ -173,7 +173,7 @@ export default class Card extends WebWorker(Index) {
       <section>
         <header>
           <a href="?page=/" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
-          <h1 class=font-size-h2>Step One: Upload your cards avatar</h1>
+          <h1 class=font-size-h2>Step One: Upload your tests avatar</h1>
           <section>
             <input type="file" id="avatar" accept="image/*">
             <a id=next-step href="?page=/generator" route target="_self">Next Step: Generator</a>
@@ -182,15 +182,15 @@ export default class Card extends WebWorker(Index) {
           <p class=center><a href=https://github.com/own-your-money/standard/blob/main/SPECIFICATIONS/print.md target=_blank>👉 read the print procedure!</a></p>
         </header>
         <main>
-          <div class="cards single">
-            <div class=card-with-img>
+          <div class="tests single">
+            <div class=test-with-img>
               <img id=background-two-img src="./src/img/oym__print_final2.jpg" />
               <div class=avatar-container>
                 <img class="img avatar" />
               </div>
               <div class=private-key-container>placeholder private key</div>
             </div>
-            <div class=card-with-img>
+            <div class=test-with-img>
               <img id=background-one-img src="./src/img/oym__print_final1.jpg" />
               <div class=public-key-container>placeholder public key</div>
               <div class=verify-url-container>placeholder verify url</div>
@@ -201,7 +201,7 @@ export default class Card extends WebWorker(Index) {
       </section>
     `
     const avatarFile = await this.webWorker(
-      Card.loadFile,
+      Test.loadFile,
       await new Promise(resolve => this.dispatchEvent(new CustomEvent('storage-get', {
         detail: {
           key: 'printSettings',

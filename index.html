@@ -35,31 +35,40 @@
   <title>bitcoin-paperwallet-generator</title>
 </head>
 <body>
-  <c-router resume mode="search" routes="[
-    {
-      'name': 'p-index',
-      'path': '../../components/pages/Index.js',
-      'regExp': ['/[#=]{1}\/$/', '/^\/$/'],
-      'title': 'home: bitcoin-paperwallet-generator'
-    },
-    {
-      'name': 'p-card',
-      'path': '../../components/pages/Card.js',
-      'regExp': ['/[#=]{1}\/card/i'],
-      'title': 'card'
-    },
-    {
-      'name': 'p-generator',
-      'path': '../../components/pages/Generator.js',
-      'regExp': ['/[#=]{1}\/generator/i'],
-      'title': 'generator'
-    }
-  ]">
-    <div class="custom-loader"></div>
-  </c-router>
+  <c-storage persist>
+    <c-router resume mode="search" routes="[
+      {
+        'name': 'p-index',
+        'path': '../../components/pages/Index.js',
+        'regExp': ['/[#=]{1}\/$/', '/^\/$/'],
+        'title': 'home: bitcoin-paperwallet-generator'
+      },
+      {
+        'name': 'p-card',
+        'path': '../../components/pages/Card.js',
+        'regExp': ['/[#=]{1}\/card/i'],
+        'title': 'Place your avatar'
+      },
+      {
+        'name': 'p-generator',
+        'path': '../../components/pages/Generator.js',
+        'regExp': ['/[#=]{1}\/generator/i'],
+        'title': 'Generate and print'
+      },
+      {
+        'name': 'p-test',
+        'path': '../../components/pages/Test.js',
+        'regExp': ['/[#=]{1}\/test/i'],
+        'title': 'Test the key pairs and print'
+      }
+    ]">
+      <div class="custom-loader"></div>
+    </c-router>
+  </c-storage>
   <script rel=preload type=module>
     Promise.all([
-      import('./src/es/event-driven-web-components-router/src/Router.js').then(module => ['c-router', module.default])
+      import('./src/es/event-driven-web-components-router/src/Router.js').then(module => ['c-router', module.default]),
+      import('./src/es/event-driven-web-components-prototypes/src/controllers/Storage.js').then(module => ['c-storage', module.default])
     ]).then(elements => elements.forEach(element => {
       // don't define already existing customElements
       if (element && !customElements.get(element[0])) customElements.define(...element)
