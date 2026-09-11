@@ -82,15 +82,6 @@ export default class Card extends WebWorker(Index) {
   renderCSS () {
     const result = super.renderCSS()
     this.css = /* css */ `
-      :host > section > header > section {
-        border: 1px solid var(--a-color);
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1em;
-        padding: 1em;
-        justify-content: space-between;
-        align-items: center;
-      }
       :host > section > main {
         :where([id^=background-]) {
           aspect-ratio: 709 / 1075; /* 5.7cm / 8.65cm */

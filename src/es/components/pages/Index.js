@@ -59,6 +59,15 @@ export default class Index extends Shadow() {
   */
   renderCSS () {
     this.css = /* css */ `
+      :host > section > header > section {
+        border: 1px solid var(--a-color);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1em;
+        padding: 1em;
+        justify-content: space-between;
+        align-items: center;
+      }
       :host {
         font-size: var(--font-size, 10px);
         font-weight: var(--font-weight, normal);

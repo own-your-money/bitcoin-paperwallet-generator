@@ -85,7 +85,7 @@ export default class Generator extends Card {
         const currency = 'btc'
         const amount = this.inputAmount.value || 0.0001
         const printTimeStamp = Date.now()
-        /** @type {{verifyUrlOrigin: string, producerName: string, currency: string, amount: string, printTimeStamp: number, bitcoinAddresses: string[]}} */
+        /** @type {{verifyUrlOrigin: string, producerName: string, currency: string, amount: string, printTimeStamp: number, bitcoinAddresses: {bitcoinAddress: string, verified: false}[]}} */
         this.printData = {
           verifyUrlOrigin,
           producerName,
@@ -99,7 +99,7 @@ export default class Generator extends Card {
             if (cards[0].classList.contains('hidden')) return Promise.resolve()
             const {bitcoinAddress, keyPairWIF} = this.generateKey()
             if (!bitcoinAddress || !keyPairWIF) return console.error('Key generation did not work:', {bitcoinAddress, keyPairWIF})
-            this.printData.bitcoinAddresses.push(bitcoinAddress)
+            this.printData.bitcoinAddresses.push({bitcoinAddress, verified: false})
             return cards.flatMap(card => Array.from(card.querySelectorAll('div')).flatMap(async container => {
               if (container.classList.contains('verify-url-container')) {
                 container.innerHTML = /* html */`

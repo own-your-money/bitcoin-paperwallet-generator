@@ -1,77 +1,63 @@
 // @ts-check
 import Index from './Index.js'
 import { WebWorker } from '../../event-driven-web-components-prototypes/src/WebWorker.js'
+import { testKeyPairWIFtoBitcoinAddress } from '../../Helpers.js'
 
 /**
 * Test Main/Start Page
 *
-  async function listAllOPFSFiles(dirHandle, path = "") {
-    for await (const [name, handle] of dirHandle.entries()) {
-      const fullPath = path + name;
-
-      if (handle.kind === "file") {
-        console.log("file:", fullPath);
-      } else if (handle.kind === "directory") {
-        console.log("dir:", fullPath + "/");
-        await listAllOPFSFiles(handle, fullPath + "/");
-      }
-    }
-  }
-  // Entry point
-  async function logOPFS() {
-    const root = await navigator.storage.getDirectory();
-    await listAllOPFSFiles(root);
-  }
-  logOPFS();
-  /////////////clear all////////////////////////////////////////////////////////////
-  const root = await navigator.storage.getDirectory();
-
-  for await (const name of root.keys()) {
-    await root.removeEntry(name, { recursive: true }); // recursive handles subdirectories too
-  }
 * @export
 * @class Index
 * @type {CustomElementConstructor}
 */
 // @ts-ignore
 export default class Test extends WebWorker(Index) {
-  constructor (options, ...args) {
-    super(options, ...args)
+  constructor (options = {}, ...args) {
+    super({ importMetaUrl: import.meta.url, ...options }, ...args)
 
-    this.inputAvatarChangeEventListener = async event => {
-      const file = this.inputAvatar.files?.[0]
-      if (!file) {
-        this.removeAttribute('has-avatar')
-        return
+    const scanResult = {
+      verifyUrl: '',
+      bitcoinAddress: '',
+      keyPairWIF: ''
+    }
+    this.qrScannerEventListener = dataString => {
+      if (!scanResult.bitcoinAddress) {
+        try {
+          const url = new URL(dataString)
+          scanResult.verifyUrl = dataString
+          scanResult.bitcoinAddress = url.hash.replace('#', '')
+          this.p.textContent = `URL recognized! Scan: "Public Key": ${scanResult.bitcoinAddress}`
+        } catch (error) {
+          this.p.textContent = 'Scan: "Verify Now" - QR CODE'
+        }
+      } else if (scanResult.bitcoinAddress === dataString) {
+        this.p.textContent = '"Public Key" matches "Verify Now" - QR CODE! Scan: "Private Key" on the backside of the card!'
+      } else if (scanResult.bitcoinAddress) {
+        try {
+          if (testKeyPairWIFtoBitcoinAddress(dataString, scanResult.bitcoinAddress)) this.p.textContent = 'All done! Nice!'
+        } catch (error) {
+          
+        }
       }
-      this.setAttribute('has-avatar', '')
-      this.imgAvatar.src = URL.createObjectURL(file)
-      this.imgAvatar.scrollIntoView()
-      const fileName = file.name.replace(/.*(\.[^.]+)$/, 'avatar$1')
-      this.webWorker(Test.saveFile, fileName, await file.arrayBuffer())
-      this.dispatchEvent(new CustomEvent('storage-merge', {
-        detail: {
-          key: 'printSettings',
-          value: {
-            avatarFileName: fileName
-          }
-        },
-        bubbles: true,
-        cancelable: true,
-        composed: true
-      }))
+      console.log('*********', dataString)
     }
   }
 
   connectedCallback () {
     const result = super.connectedCallback()
-    if (this.inputAvatar) this.inputAvatar.addEventListener('change', this.inputAvatarChangeEventListener)
+    result.then(async () => {
+      let video
+      ({qrScanner: this.qrScanner, video} = await this.#startQrScanner(this.qrScannerEventListener))
+      video.setAttribute('style', '')
+      this.main.appendChild(video)
+      this.start()
+    })
     return result
   }
 
   disconnectedCallback () {
+
     super.disconnectedCallback()
-    if (this.inputAvatar) this.inputAvatar.removeEventListener('change', this.inputAvatarChangeEventListener)
   }
 
   /**
@@ -82,81 +68,11 @@ export default class Test extends WebWorker(Index) {
   renderCSS () {
     const result = super.renderCSS()
     this.css = /* css */ `
-      :host > section > header > section {
-        border: 1px solid var(--a-color);
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1em;
-        padding: 1em;
-        justify-content: space-between;
-        align-items: center;
-      }
       :host > section > main {
-        :where([id^=background-]) {
-          aspect-ratio: 709 / 1075; /* 5.7cm / 8.65cm */
-          width: 100%;
-        }
-        .test-with-img {
-          width: calc(50cqw - 0.5em);
-          position: relative;
-          container-type: inline-size;
-          & > div {
-            position: absolute;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 1px solid black;
-            border-radius: 1.55cqw;
-            padding: 0.15em;
-            text-align: center;
-            font-size: 0.75em;
-            border-color: red;
-            color: red;
-          }
-          .avatar-container {
-            left: 12.5cqw;
-            bottom: 18%;
-            width: 23cqw;
-            height: 23cqw;
-            .img {
-              max-width: 100%;
-              max-height: 100%;
-              border-radius: 1.55cqw;
-            }
-          }
-          .private-key-container {
-            left: 55.25cqw;
-            bottom: 35.25%;
-            width: 30cqw;
-            height: 30cqw;
-            canvas {
-              filter: blur(5px);
-            }
-          }
-          .public-key-container {
-            left: 69.5cqw;
-            bottom: 71.5%;
-            width: 12.5cqw;
-            height: 14.5cqw;
-            font-size: 0.4em;
-          }
-          .verify-url-container {
-            left: 37.5cqw;
-            bottom: 20.5%;
-            width: 38cqw;
-            height: 34.5cqw;
-          }
-        }
-      }
-      :host #next-step {
-        display: none;
-      }
-      :host([has-avatar]) #next-step {
-        display: block;
-      }
-      @media only screen and (max-width: _max-width_) {
-        :host section .tests {
-          flex-direction: row;
+        text-align: center;
+        & > video {
+          max-width: min(100%, 75svh);
+          margin-bottom: 1em;
         }
       }
     `
@@ -173,84 +89,52 @@ export default class Test extends WebWorker(Index) {
       <section>
         <header>
           <a href="?page=/" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
-          <h1 class=font-size-h2>Step One: Upload your tests avatar</h1>
+          <h1 class=font-size-h2>Step Three: Test your cards</h1>
           <section>
-            <input type="file" id="avatar" accept="image/*">
-            <a id=next-step href="?page=/generator" route target="_self">Next Step: Generator</a>
+            <div></div>
+            <a id=next-step href="?page=/seal" route target="_self">Next Step: Immediately seal the private key</a>
           </section>
           <br>
           <p class=center><a href=https://github.com/own-your-money/standard/blob/main/SPECIFICATIONS/print.md target=_blank>👉 read the print procedure!</a></p>
         </header>
         <main>
-          <div class="tests single">
-            <div class=test-with-img>
-              <img id=background-two-img src="./src/img/oym__print_final2.jpg" />
-              <div class=avatar-container>
-                <img class="img avatar" />
-              </div>
-              <div class=private-key-container>placeholder private key</div>
-            </div>
-            <div class=test-with-img>
-              <img id=background-one-img src="./src/img/oym__print_final1.jpg" />
-              <div class=public-key-container>placeholder public key</div>
-              <div class=verify-url-container>placeholder verify url</div>
-            </div>
-          </div>
+          <h3>Scan your previously printed cards...</h3>
         </main>
         <footer>${this.footer}</footer>
       </section>
     `
-    const avatarFile = await this.webWorker(
-      Test.loadFile,
-      await new Promise(resolve => this.dispatchEvent(new CustomEvent('storage-get', {
-        detail: {
-          key: 'printSettings',
-          resolve
-        },
-        bubbles: true,
-        cancelable: true,
-        composed: true
-      }))).then(data => data.value.avatarFileName) || 'avatar.jpg'
-    )
-    if (avatarFile) {
-      this.imgAvatar.src = URL.createObjectURL(avatarFile)
-      this.imgAvatar.scrollIntoView()
-      this.setAttribute('has-avatar', '')
-    } else {
-      this.removeAttribute('has-avatar')
-    }
   }
 
-  static async saveFile (name, buffer) {
-    // @ts-ignore
-    const accessHandle = await (await (await navigator.storage.getDirectory()).getFileHandle(name, { create: true })).createSyncAccessHandle()
-    accessHandle.write(buffer, { at: 0 })
-    accessHandle.flush()
-    accessHandle.close()
+  start () {
+    this.qrScanner.start()
+    const p = document.createElement('p')
+    p.setAttribute(`scan-${this.scanCounter || (this.scanCounter = 0)}`, '')
+    this.scanCounter++
+    p.textContent = 'Scan: "Verify Now" - QR CODE'
+    p.classList.add('center')
+    this.main.appendChild(p)
   }
 
-  static async loadFile (name) {
-    try {
-      // @ts-ignore
-      const accessHandle = await (await (await navigator.storage.getDirectory()).getFileHandle(name)).createSyncAccessHandle()
-      const buffer = new Uint8Array(accessHandle.getSize())
-      accessHandle.read(buffer, { at: 0 })
-      accessHandle.close()
-      return new File([buffer], name)
-    } catch (error) {
-      return null
-    }
+  #startQrScanner (func) {
+    return import(`${this.importMetaUrl}../../libs/qr-scanner.min.js`).then(async module => {
+        const QrScanner = module.default
+        const video = document.createElement('video')
+        return {
+          video,
+          qrScanner: new QrScanner(
+            video,
+            func
+          ),
+          hasCamera: await QrScanner.hasCamera()
+        }
+    })
   }
 
-  get inputAvatar () {
-    return this.root.querySelector('#avatar')
+  get main () {
+    return this.root.querySelector('main')
   }
 
-  get imgAvatar () {
-    return this.root.querySelector('.img.avatar')
-  }
-
-  get imgAvatars () {
-    return Array.from(this.root.querySelectorAll('.img.avatar'))
+  get p () {
+    return this.main.querySelector('p')
   }
 }
