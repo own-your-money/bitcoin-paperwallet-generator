@@ -66,7 +66,7 @@ export default class Test extends WebWorker(Index) {
                   this.printSeriesElement.appendChild(printSeriesChildElement)
                 }
                 if (!counter) counter = printSeriesChildElement.querySelector('[counter]')
-                counter.textContent = `Printed at ${(new Date(timestamp)).toLocaleString(navigator.language)}; verified: ${printSeries[timestamp].bitcoinAddresses.filter(data => data.verified).length}/${printSeries[timestamp].bitcoinAddresses.length}`
+                counter.textContent = `Printed at ${(new Date(Number(timestamp))).toLocaleString(navigator.language)}; verified: ${printSeries[timestamp].bitcoinAddresses.filter(data => data.verified).length}/${printSeries[timestamp].bitcoinAddresses.length}`
                 let printSeriesCvcElement
                 if (!(printSeriesCvcElement = printSeriesChildElement.querySelector(`[cvc=cvc_${foundData.cvc}]`))) {
                   printSeriesCvcElement = document.createElement('p')
@@ -113,15 +113,20 @@ export default class Test extends WebWorker(Index) {
   renderCSS () {
     const result = super.renderCSS()
     this.css = /* css */ `
-      :host > section > main {
-        text-align: center;
-        & > section > video {
-          max-width: min(100%, 75svh);
-          margin-bottom: 1em;
-          transform: none !important;
-          opacity: 1 !important;
-          width: 100% !important;
-          height: auto !important;
+      :host > section {
+        &:has(> header #blur-video:checked) > main > section > video {
+          filter: blur(10px);
+        }
+        & > main {
+          text-align: center;
+          & > section > video {
+            max-width: min(100%, 75svh);
+            margin-bottom: 1em;
+            transform: none !important;
+            opacity: 1 !important;
+            width: 100% !important;
+            height: auto !important;
+          }
         }
       }
     `
@@ -140,7 +145,10 @@ export default class Test extends WebWorker(Index) {
           <a href="?page=/" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
           <h1 class=font-size-h2>Step Three: Test your cards</h1>
           <section>
-            <div></div>
+            <div>
+              <input id=blur-video checked type=checkbox>
+              <label for=blur-video>blur video for safety</label>
+            </div>
             <a id=next-step href="?page=/seal" route target="_self">Next Step: Immediately seal the private key</a>
           </section>
           <br>
