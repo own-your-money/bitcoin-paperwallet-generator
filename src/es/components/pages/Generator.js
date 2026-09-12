@@ -85,7 +85,7 @@ export default class Generator extends Card {
         const currency = 'btc'
         const amount = this.inputAmount.value || 0.0001
         const printTimeStamp = Date.now()
-        /** @type {{verifyUrlOrigin: string, producerName: string, currency: string, amount: string, printTimeStamp: number, bitcoinAddresses: {bitcoinAddress: string, verified: false}[]}} */
+        /** @type {{verifyUrlOrigin: string, producerName: string, currency: string, amount: string, printTimeStamp: number, bitcoinAddresses: {bitcoinAddress: string, cvc: string, verified: false}[]}} */
         this.printData = {
           verifyUrlOrigin,
           producerName,
@@ -99,7 +99,8 @@ export default class Generator extends Card {
             if (cards[0].classList.contains('hidden')) return Promise.resolve()
             const {bitcoinAddress, keyPairWIF} = this.generateKey()
             if (!bitcoinAddress || !keyPairWIF) return console.error('Key generation did not work:', {bitcoinAddress, keyPairWIF})
-            this.printData.bitcoinAddresses.push({bitcoinAddress, verified: false})
+            const cvc = self.crypto.randomUUID().replace(/^.*-/, '').substring(0, 7)
+            this.printData.bitcoinAddresses.push({bitcoinAddress, cvc, verified: false})
             return cards.flatMap(card => Array.from(card.querySelectorAll('div')).flatMap(async container => {
               if (container.classList.contains('verify-url-container')) {
                 container.innerHTML = /* html */`
@@ -113,7 +114,7 @@ export default class Generator extends Card {
                 container.appendChild(canvas)
               } else if (container.classList.contains('private-key-container')) {
                 container.innerHTML = /* html */`
-                  <span class=cvc>${self.crypto.randomUUID().replace(/^.*-/, '').substring(0, 7)}</span>
+                  <span class=cvc>${cvc}</span>
                 `
                 const canvas = await this.#getQrCanvas(keyPairWIF, container)
                 container.appendChild(canvas)
@@ -156,6 +157,8 @@ export default class Generator extends Card {
               cancelable: true,
               composed: true
             }))
+            // @ts-ignore
+            this.printData = undefined
             history.pushState({ ...history.state, pageTitle: 'Test the key pairs and print' }, '', `${location.origin}/?page=/test`)
           }, 1)
         }

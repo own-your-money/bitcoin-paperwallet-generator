@@ -15,48 +15,93 @@ export default class Test extends WebWorker(Index) {
   constructor (options = {}, ...args) {
     super({ importMetaUrl: import.meta.url, ...options }, ...args)
 
-    const scanResult = {
-      verifyUrl: '',
-      bitcoinAddress: '',
-      keyPairWIF: ''
+    let scanResult
+    this.resetScanResult = () => {
+      if (this.qrResultElement) this.qrResultElement.textContent = 'Scan: "Verify Now" - QR CODE'
+      return scanResult = {
+        verifyUrl: '',
+        bitcoinAddress: ''
+      }
     }
-    this.qrScannerEventListener = dataString => {
+    this.resetScanResult()
+    this.qrScannerEventListener = async ({data: dataString}) => {
       if (!scanResult.bitcoinAddress) {
         try {
           const url = new URL(dataString)
           scanResult.verifyUrl = dataString
           scanResult.bitcoinAddress = url.hash.replace('#', '')
-          this.p.textContent = `URL recognized! Scan: "Public Key": ${scanResult.bitcoinAddress}`
+          this.qrResultElement.textContent = `URL recognized! Scan: "Public Key": ${scanResult.bitcoinAddress}`
         } catch (error) {
-          this.p.textContent = 'Scan: "Verify Now" - QR CODE'
+          this.qrResultElement.textContent = 'Scan: "Verify Now" - QR CODE'
         }
       } else if (scanResult.bitcoinAddress === dataString) {
-        this.p.textContent = '"Public Key" matches "Verify Now" - QR CODE! Scan: "Private Key" on the backside of the card!'
+        this.qrResultElement.textContent = '"Public Key" matches "Verify Now" - QR CODE! Scan: "Private Key" on the backside of the card!'
       } else if (scanResult.bitcoinAddress) {
         try {
-          if (testKeyPairWIFtoBitcoinAddress(dataString, scanResult.bitcoinAddress)) this.p.textContent = 'All done! Nice!'
+          if (testKeyPairWIFtoBitcoinAddress(dataString, scanResult.bitcoinAddress)) {
+            this.qrResultElement.textContent = 'All done! Nice!'
+            const url = new URL(scanResult.verifyUrl)
+            let timestamp, printSeries, printData
+            if ((timestamp = url.searchParams.get('ts')) && (printData = (printSeries = await this.printSeries)[timestamp])) {
+              let foundData
+              if ((foundData = printData.bitcoinAddresses.find(({bitcoinAddress}) => bitcoinAddress === scanResult.bitcoinAddress))) {
+                foundData.verified = true
+                this.dispatchEvent(new CustomEvent('storage-set', {
+                  detail: {
+                    key: 'printSeries',
+                    value: printSeries
+                  },
+                  bubbles: true,
+                  cancelable: true,
+                  composed: true
+                }))
+                this.resetScanResult()
+                let printSeriesChildElement, counter
+                if (!(printSeriesChildElement = this.printSeriesElement.querySelector(`#t_${timestamp}`))) {
+                  printSeriesChildElement = document.createElement('p')
+                  printSeriesChildElement.setAttribute('id', `t_${timestamp}`)
+                  counter = document.createElement('p')
+                  counter.setAttribute('counter', '')
+                  printSeriesChildElement.appendChild(counter)
+                  this.printSeriesElement.appendChild(printSeriesChildElement)
+                }
+                if (!counter) counter = printSeriesChildElement.querySelector('[counter]')
+                counter.textContent = `Printed at ${(new Date(timestamp)).toLocaleString(navigator.language)}; verified: ${printSeries[timestamp].bitcoinAddresses.filter(data => data.verified).length}/${printSeries[timestamp].bitcoinAddresses.length}`
+                let printSeriesCvcElement
+                if (!(printSeriesCvcElement = printSeriesChildElement.querySelector(`[cvc=cvc_${foundData.cvc}]`))) {
+                  printSeriesCvcElement = document.createElement('p')
+                  printSeriesCvcElement.setAttribute('cvc', `cvc_${foundData.cvc}`)
+                  printSeriesChildElement.appendChild(printSeriesCvcElement)
+                }
+                printSeriesCvcElement.textContent = `CVC: ${foundData.cvc} - verified = ${foundData.verified}`
+              }
+            }
+          }
         } catch (error) {
-          
+          console.info(error)
         }
       }
-      console.log('*********', dataString)
     }
   }
 
   connectedCallback () {
+    this.resetScanResult()
+    const shouldRenderHTML= this.shouldRenderHTML()
     const result = super.connectedCallback()
-    result.then(async () => {
-      let video
-      ({qrScanner: this.qrScanner, video} = await this.#startQrScanner(this.qrScannerEventListener))
-      video.setAttribute('style', '')
-      this.main.appendChild(video)
-      this.start()
-    })
+    if (shouldRenderHTML) {
+      result.then(async () => {
+        let video, errorEl
+        ({qrScanner: this.qrScanner, video, errorEl} = await this.#startQrScanner(this.qrScannerEventListener, this.video))
+        this.start(video, this.qrResultElement, errorEl)
+      })
+    } else {
+      this.qrScanner.start()
+    }
     return result
   }
 
   disconnectedCallback () {
-
+    this.qrScanner.stop()
     super.disconnectedCallback()
   }
 
@@ -70,9 +115,13 @@ export default class Test extends WebWorker(Index) {
     this.css = /* css */ `
       :host > section > main {
         text-align: center;
-        & > video {
+        & > section > video {
           max-width: min(100%, 75svh);
           margin-bottom: 1em;
+          transform: none !important;
+          opacity: 1 !important;
+          width: 100% !important;
+          height: auto !important;
         }
       }
     `
@@ -99,42 +148,73 @@ export default class Test extends WebWorker(Index) {
         </header>
         <main>
           <h3>Scan your previously printed cards...</h3>
+          <section id=qr-scanner>
+            <video></video>
+            <p id=qr-result class=center></p>
+            <div id=print-series></div>
+          </section>
         </main>
         <footer>${this.footer}</footer>
       </section>
     `
   }
 
-  start () {
+  start (video, resultEl, errorEl) {
     this.qrScanner.start()
-    const p = document.createElement('p')
-    p.setAttribute(`scan-${this.scanCounter || (this.scanCounter = 0)}`, '')
-    this.scanCounter++
-    p.textContent = 'Scan: "Verify Now" - QR CODE'
-    p.classList.add('center')
-    this.main.appendChild(p)
+    // must add video to dom again, otherwise qr-scanner places it on body
+    this.qrScannerSection.prepend(video)
+    resultEl.textContent = 'Scan: "Verify Now" - QR CODE'
+    // TODO: handle Error and add visual target sugar as in example: https://github.com/nimiq/qr-scanner/blob/master/demo/index.html
+    //errorEl.classList.add('center')
+    //this.qrScannerSection.appendChild(errorEl)
   }
 
-  #startQrScanner (func) {
+  #startQrScanner (func, video = document.createElement('video'), errorEl = document.createElement('p')) {
     return import(`${this.importMetaUrl}../../libs/qr-scanner.min.js`).then(async module => {
         const QrScanner = module.default
-        const video = document.createElement('video')
-        return {
+        const result = {
           video,
+          errorEl,
           qrScanner: new QrScanner(
             video,
-            func
+            func,
+            {
+              onDecodeError: error => (errorEl.textContent = error),
+              highlightScanRegion: true,
+              highlightCodeOutline: true,
+            }
           ),
           hasCamera: await QrScanner.hasCamera()
         }
+        return result
     })
   }
 
-  get main () {
-    return this.root.querySelector('main')
+  get qrScannerSection () {
+    return this.root.querySelector('#qr-scanner')
   }
 
-  get p () {
-    return this.main.querySelector('p')
+  get qrResultElement () {
+    return this.qrScannerSection?.querySelector('#qr-result')
+  }
+
+  get printSeriesElement () {
+    return this.qrScannerSection?.querySelector('#print-series')
+  }
+
+  get video () {
+    return this.qrScannerSection?.querySelector('video')
+  }
+
+  get printSeries () {
+    return new Promise(resolve => this.dispatchEvent(new CustomEvent('storage-get', {
+      detail: {
+        key: 'printSeries',
+        resolve
+      },
+      bubbles: true,
+      cancelable: true,
+      composed: true
+    }))).then(data => data.value)
   }
 }
