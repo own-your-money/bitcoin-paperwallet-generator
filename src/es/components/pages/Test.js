@@ -46,15 +46,16 @@ export default class Test extends WebWorker(Index) {
               let foundData
               if ((foundData = printData.bitcoinAddresses.find(({bitcoinAddress}) => bitcoinAddress === scanResult.bitcoinAddress))) {
                 foundData.verified = true
-                this.dispatchEvent(new CustomEvent('storage-set', {
+                new Promise(resolve => this.dispatchEvent(new CustomEvent('storage-set', {
                   detail: {
                     key: 'printSeries',
-                    value: printSeries
+                    value: printSeries,
+                    resolve
                   },
                   bubbles: true,
                   cancelable: true,
                   composed: true
-                }))
+                }))).then(() => this.renderPreviousSeries())
                 this.resetScanResult()
                 let printSeriesChildElement, counter
                 if (!(printSeriesChildElement = this.printSeriesElement.querySelector(`#t_${timestamp}`))) {
@@ -82,6 +83,16 @@ export default class Test extends WebWorker(Index) {
         }
       }
     }
+
+    this.irisSwissLinkClickEventListener = event => {
+      event.preventDefault()
+      const a = document.createElement('a')
+      const roomName = `chat-iris-swiss-certification-room-${self.crypto.randomUUID()}`
+      a.href = `mailto:info@iris-swiss.com?subject=Certification of OYM print series - ${roomName}&body=${encodeURIComponent(`1: Open this room in a browser:\nhttps://decentral.ninja/?page=%2Fchat&websocket-url=wss%3A%2F%2Fheroku.decentral.ninja%2F%3Fkeep-alive%3D432000000%2Cwss%3A%2F%2Fwebsocket.peerweb.site%2F%3Fkeep-alive%3D432000000%2Cwss%3A%2F%2Fwebsocket-two.peerweb.site%2F%3Fkeep-alive%3D432000000&webrtc-url=wss%3A%2F%2Fwebrtc-two.peerweb.site%2F%2Cwss%3A%2F%2Fwebrtc.peerweb.site%2F&room=${roomName}\n\n2: Create a key, upload and encrypt all print series JSON files!\n\n3: Send this mail to us!\n\nAlternatively, directly attach the print series JSON files to this mail...\n\n[ADD YOUR MESSAGE HERE]`)}`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    }
   }
 
   connectedCallback () {
@@ -93,6 +104,8 @@ export default class Test extends WebWorker(Index) {
         let video, errorEl
         ({qrScanner: this.qrScanner, video, errorEl} = await this.#startQrScanner(this.qrScannerEventListener, this.video))
         this.start(video, this.qrResultElement, errorEl)
+        this.renderPreviousSeries()
+        this.irisSwissLink.addEventListener('click', this.irisSwissLinkClickEventListener)
       })
     } else {
       this.qrScanner.start()
@@ -102,6 +115,7 @@ export default class Test extends WebWorker(Index) {
 
   disconnectedCallback () {
     this.qrScanner.stop()
+    this.irisSwissLink.removeEventListener('click', this.irisSwissLinkClickEventListener)
     super.disconnectedCallback()
   }
 
@@ -127,6 +141,19 @@ export default class Test extends WebWorker(Index) {
             width: 100% !important;
             height: auto !important;
           }
+          #delete-series {
+            color: red;
+          }
+          ol {
+            margin: 1em;
+            & > li {
+              margin-bottom: 0.5em;
+              & > div {
+                display: flex;
+                justify-content: space-between;
+              }
+            }
+          }
         }
       }
     `
@@ -149,7 +176,7 @@ export default class Test extends WebWorker(Index) {
               <input id=blur-video checked type=checkbox>
               <label for=blur-video>blur video for safety</label>
             </div>
-            <a id=next-step href="?page=/seal" route target="_self">Next Step: Immediately seal the private key</a>
+            <a id=next-step href="?page=/seal" route target="_self">Next Step: Immediately seal all the private keys!</a>
           </section>
           <br>
           <p class=center><a href=https://github.com/own-your-money/standard/blob/main/SPECIFICATIONS/print.md target=_blank>👉 read the print procedure!</a></p>
@@ -160,6 +187,17 @@ export default class Test extends WebWorker(Index) {
             <video></video>
             <p id=qr-result class=center></p>
             <div id=print-series></div>
+            <hr>
+            <details id=pending-series open>
+              <summary>Print series test pending</summary>
+              <ol></ol>
+            </details>
+            <hr>
+            <details id=successful-series open>
+              <summary>Print series tested successfully</summary>
+              <ol></ol>
+              <h5>Download and hand the print series JSON in to: <a id=iris-swiss>Iris-Swiss</a> to certify it!</h5>
+            </details>
           </section>
         </main>
         <footer>${this.footer}</footer>
@@ -198,6 +236,58 @@ export default class Test extends WebWorker(Index) {
     })
   }
 
+  async renderPreviousSeries () {
+    const printSeries = await this.printSeries
+    const successfulSeriesList= this.successfulSeriesElement.querySelector('ol')
+    successfulSeriesList.innerHTML = ''
+    const pendingSeriesElement= this.pendingSeriesElement.querySelector('ol')
+    pendingSeriesElement.innerHTML = ''
+    Object.keys(printSeries).forEach(timestamp => {
+      let success
+      const parentElement = (success = printSeries[timestamp].bitcoinAddresses.every(bitcoinAddress => bitcoinAddress.verified))
+        ? successfulSeriesList
+        : pendingSeriesElement
+      this.renderPreviousSeriesListElement(parentElement, timestamp, success, printSeries[timestamp], printSeries)
+    })
+  }
+
+  renderPreviousSeriesListElement (parentElement, timestamp, success, seriesObj, printSeries) {
+    if (parentElement.querySelector(`[timestamp=t_${timestamp}]`)) return
+    const li = document.createElement('li')
+    li.setAttribute('timestamp', `t_${timestamp}`)
+    if (success) {
+      li.innerHTML = /* HTML */`
+        <div>
+          <a download="${seriesObj.producerName}-${timestamp}.json" rel="noopener" href="${URL.createObjectURL(new Blob([JSON.stringify(seriesObj, null, 2)], { type: 'application/json' }))}">${(new Date(Number(timestamp))).toLocaleString(navigator.language)}</a>
+          <a id="delete-series">delete</a>
+        </div>
+      `
+    } else {
+      li.innerHTML = /* HTML */`
+        <div>
+          <span>${(new Date(Number(timestamp))).toLocaleString(navigator.language)}</span>
+          <a id="delete-series">delete</a>
+        </div>
+      `
+    }
+    li.querySelector('#delete-series')?.addEventListener('click', event => {
+      if (self.confirm(`Do you really want to delete the print series ${timestamp}?`)) {
+        delete printSeries[timestamp]
+        new Promise(resolve => this.dispatchEvent(new CustomEvent('storage-set', {
+          detail: {
+            key: 'printSeries',
+            value: printSeries,
+            resolve
+          },
+          bubbles: true,
+          cancelable: true,
+          composed: true
+        }))).then(() => this.renderPreviousSeries())
+      }
+    })
+    parentElement.appendChild(li)
+  }
+
   get qrScannerSection () {
     return this.root.querySelector('#qr-scanner')
   }
@@ -208,6 +298,18 @@ export default class Test extends WebWorker(Index) {
 
   get printSeriesElement () {
     return this.qrScannerSection?.querySelector('#print-series')
+  }
+
+  get successfulSeriesElement () {
+    return this.qrScannerSection?.querySelector('#successful-series')
+  }
+
+  get pendingSeriesElement () {
+    return this.qrScannerSection?.querySelector('#pending-series')
+  }
+
+  get irisSwissLink () {
+    return this.qrScannerSection?.querySelector('#iris-swiss')
   }
 
   get video () {

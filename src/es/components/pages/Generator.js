@@ -69,7 +69,10 @@ export default class Generator extends Card {
 
     this.inputVerifyUrlOriginChangeEventListener = event => this.storageMerge('verifyUrlOrigin', event.target.value)
 
-    this.inputProducerNameChangeEventListener = event => this.storageMerge('producerName', event.target.value)
+    this.inputProducerNameChangeEventListener = event => {
+      this.inputProducerName.value = this.inputProducerName.value.replace(/[^a-zA-Z]/g, '').substring(0, 25)
+      this.storageMerge('producerName', event.target.value)
+    }
 
     this.inputAmountChangeEventListener = event => this.storageMerge('amount', event.target.value)
 
