@@ -1,5 +1,5 @@
 // @ts-check
-import Index from './Index.js'
+import IndexPrototype from './IndexPrototype.js'
 import { WebWorker } from '../../event-driven-web-components-prototypes/src/WebWorker.js'
 
 /**
@@ -34,7 +34,7 @@ import { WebWorker } from '../../event-driven-web-components-prototypes/src/WebW
 * @type {CustomElementConstructor}
 */
 // @ts-ignore
-export default class Card extends WebWorker(Index) {
+export default class Card extends WebWorker(IndexPrototype) {
   constructor (options, ...args) {
     super(options, ...args)
 
@@ -164,13 +164,11 @@ export default class Card extends WebWorker(Index) {
       <section>
         <header>
           <a href="?page=/" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
-          <h1 class=font-size-h2>Step One: Upload your cards avatar</h1>
+          <h1 class=font-size-h2>Step: Upload your cards avatar</h1>
           <section>
             <input type="file" id="avatar" accept="image/*">
             <a id=next-step href="?page=/generator" route target="_self">Next Step: Generator</a>
           </section>
-          <br>
-          <p class=center><a href=https://github.com/own-your-money/standard/blob/main/SPECIFICATIONS/print.md target=_blank>👉 read the print procedure!</a></p>
         </header>
         <main>
           <div class="cards single">

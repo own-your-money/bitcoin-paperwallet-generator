@@ -1,17 +1,16 @@
 // @ts-check
-import Index from './Index.js'
-import { WebWorker } from '../../event-driven-web-components-prototypes/src/WebWorker.js'
+import IndexPrototype from './IndexPrototype.js'
 import { testKeyPairWIFtoBitcoinAddress } from '../../Helpers.js'
 
 /**
 * Test Main/Start Page
 *
 * @export
-* @class Index
+* @class IndexPrototype
 * @type {CustomElementConstructor}
 */
 // @ts-ignore
-export default class Test extends WebWorker(Index) {
+export default class Test extends IndexPrototype {
   constructor (options = {}, ...args) {
     super({ importMetaUrl: import.meta.url, ...options }, ...args)
 
@@ -170,16 +169,14 @@ export default class Test extends WebWorker(Index) {
       <section>
         <header>
           <a href="?page=/" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
-          <h1 class=font-size-h2>Step Three: Test your cards</h1>
+          <h1 class=font-size-h2>Step: Test key pairs!</h1>
           <section>
             <div>
               <input id=blur-video checked type=checkbox>
               <label for=blur-video>blur video for safety</label>
             </div>
-            <a id=next-step href="?page=/seal" route target="_self">Next Step: Immediately seal all the private keys!</a>
+            <a id=next-step href="?page=/seal" route target="_self">Next Step: Seal & Stamp the private keys</a>
           </section>
-          <br>
-          <p class=center><a href=https://github.com/own-your-money/standard/blob/main/SPECIFICATIONS/print.md target=_blank>👉 read the print procedure!</a></p>
         </header>
         <main>
           <h3>Scan your previously printed cards...</h3>
@@ -196,7 +193,7 @@ export default class Test extends WebWorker(Index) {
             <details id=successful-series open>
               <summary>Print series tested successfully</summary>
               <ol></ol>
-              <h5>Download and hand the print series JSON in to: <a id=iris-swiss>Iris-Swiss</a> to certify it!</h5>
+              <h5>Click, download and hand the print series JSON in to: <a id=iris-swiss>Iris-Swiss</a> to certify it!</h5>
             </details>
           </section>
         </main>

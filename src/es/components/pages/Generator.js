@@ -404,7 +404,7 @@ export default class Generator extends Card {
             </div>
           </dialog>
           <a href="?page=/" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
-          <h1 class=font-size-h2>Step Two: Generate your key pairs</h1>
+          <h1 class=font-size-h2>Step: Generate your key pairs and print</h1>
           <section>
             <div>
               <div>
@@ -460,10 +460,8 @@ export default class Generator extends Card {
               </div>
             </div>
             <button id=generate-keys>Generate keys and print!</button>
-            <a id=done href="?page=/test" route target="_self">Next Step: Test matching key pairs!</a>
+            <a id=done href="?page=/test" route target="_self">Next Step: Test</a>
           </section>
-          <br>
-          <p class=center><a href=https://github.com/own-your-money/standard/blob/main/SPECIFICATIONS/print.md target=_blank>👉 read the print procedure!</a></p>
         </header>
         <main>
           <h3 class=no-print>Page ONE</h3>
