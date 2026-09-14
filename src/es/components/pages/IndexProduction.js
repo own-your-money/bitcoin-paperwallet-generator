@@ -20,7 +20,7 @@ export default class IndexProduction extends IndexPrototype {
     this.html = /* html */`
       <section>
         <header>
-          <img class=oym-img src="./src/img/OYM.png" />
+          <a href="?page=/" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
           <h1>Welcome to</h1>
           <a href="https://ownyour.money/" target=_blank><h3 class=center>ownyour.money</h3></a>
           <p class=center><a href=https://github.com/own-your-money/standard target=_blank>👉 before you start -> read the standard!</a></p>

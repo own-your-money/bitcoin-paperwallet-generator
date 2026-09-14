@@ -19,11 +19,11 @@ export default class Cut extends Prerequisite {
     this.html = /* html */`
       <section>
         <header>
-          <a href="?page=/" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
+          <a href="?page=/production" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
           <h1 class=font-size-h2>Step: Cut, transfer/charge bitcoins, sleeve and eyelet punch each card</h1>
           <section>
             <div></div>
-            <a id=next-step href="?page=/" route target="_self">All done!</a>
+            <a id=next-step href="?page=/production" route target="_self">All done!</a>
           </section>
         </header>
         <main>

@@ -36,7 +36,7 @@
   --h4-color: var(--color);
   --h4-font-family: var(--font-family);
   --h4-font-size: 1.35em;
-  --hr-margin: 1em;
+  --hr-margin: 1em 0;
   --spacing: 0.5rem;
   --text-decoration: underline;
   --transition: all 0.3s ease-out;

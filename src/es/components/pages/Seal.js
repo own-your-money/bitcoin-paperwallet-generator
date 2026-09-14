@@ -19,7 +19,7 @@ export default class Seal extends Prerequisite {
     this.html = /* html */`
       <section>
         <header>
-          <a href="?page=/" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
+          <a href="?page=/production" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
           <h1 class=font-size-h2>Step: Seal & Stamp all the private keys</h1>
           <section>
             <div></div>

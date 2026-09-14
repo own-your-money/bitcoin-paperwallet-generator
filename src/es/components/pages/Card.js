@@ -163,7 +163,7 @@ export default class Card extends WebWorker(IndexPrototype) {
     this.html = /* html */`
       <section>
         <header>
-          <a href="?page=/" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
+          <a href="?page=/production" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
           <h1 class=font-size-h2>Step: Upload your cards avatar</h1>
           <section>
             <input type="file" id="avatar" accept="image/*">

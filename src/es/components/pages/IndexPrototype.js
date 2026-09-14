@@ -110,9 +110,10 @@ export default class IndexPrototype extends Shadow() {
           }
         }
         .card {
+          --a-text-decoration: none;
           align-items: center;
           background-color: lightsteelblue;
-          border-radius: 1.55cqw;
+          border-radius: 0.55cqw;
           display: flex;
           height: calc(50cqw - 0.5em);
           max-height: 50svh;
