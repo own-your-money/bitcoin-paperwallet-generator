@@ -55,7 +55,21 @@ export default class Generator extends Card {
       }, {once: true})
     }
 
-    this.buttonSkipClickEventListener = event => this.setAttribute('mode', 'test-success')
+    this.buttonSkipClickEventListener = event => {
+      if (!this.inputProducerName.value) {
+        this.inputProducerName.focus()
+        return alert('Producer nickname is required!')
+      }
+      if (this.inputVerifyUrlOrigin.value) {
+        try {
+          new URL(this.inputVerifyUrlOrigin.value)
+        } catch (error) {
+          this.inputVerifyUrlOrigin.focus()
+          return alert('Verify URL origin is invalid!')
+        }
+      }
+      this.setAttribute('mode', 'test-success')
+    }
 
     const pageAdjustFunc = (selector, name, value, direction) => {
       const key = `${name}${direction}adjust`
