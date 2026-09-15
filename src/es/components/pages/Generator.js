@@ -14,6 +14,9 @@ export default class Generator extends Card {
   constructor (options = {}, ...args) {
     super({ importMetaUrl: import.meta.url, ...options }, ...args)
 
+    // preload for offline print
+    this.loadDependency('QRCode', `${this.importMetaUrl}../../libs/qrcode.min.js`)
+
     this.buttonGenerateTestDataClickEventListener = (event, hidingQR = false) => {
       if (!hidingQR) {
         this.setAttribute('mode', 'test')
@@ -474,7 +477,7 @@ export default class Generator extends Card {
               </div>
             </div>
             <button id=generate-keys>Generate keys and print!</button>
-            <a id=done href="?page=/test" route target="_self">Next Step: Test</a>
+            <a id=done href="?page=/test" route target="_self">Next Step: Test (go back online!)</a>
           </section>
         </header>
         <main>

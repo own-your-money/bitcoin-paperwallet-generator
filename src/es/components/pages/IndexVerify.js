@@ -20,6 +20,7 @@ export default class IndexVerify extends IndexPrototype {
     const result = super.renderCSS()
     this.css = /* css */ `
       :host > section{
+        --h-word-break-mobile: break-word;
         & > main {
           .balance {
             display: flex;
@@ -61,15 +62,14 @@ export default class IndexVerify extends IndexPrototype {
       <section>
         <header>
           <a href="?page=/" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
-          <h1>Welcome to</h1>
-          <a href="https://ownyour.money/" target=_blank><h3 class=center>ownyour.money</h3></a>
         </header>
         <main>
           <hr>
-          <h3>Produced by: ${url.searchParams.get('prd')} at ${(new Date(Number(url.searchParams.get('ts')))).toLocaleString(navigator.language)}</h3>
-          <h4>Alleged paper wallet amount: <a title="click to verify amount with blockchain.com" href="${verifyUrl}" target="_blank">
+          <h3><span class=font-size-tiny>Produced by:</span><br>${url.searchParams.get('prd')} at ${(new Date(Number(url.searchParams.get('ts')))).toLocaleString(navigator.language)}</h3>
+          <h4><span class=font-size-tiny>public key:</span><br>${bitcoinAddress}</h4>
+          <h2 class=font-size-h3><span class=font-size-tiny>Alleged paper wallet balance:</span><br><a class=font-size-h3 title="click to verify amount with blockchain.com" href="${verifyUrl}" target="_blank">
             ${url.searchParams.get('amt')}&nbsp;${url.searchParams.get('cur')?.toUpperCase()}</a>
-          </h4>
+          </h2>
           <hr>
           <div class="cards overview">
             <a title="verify amount with blockchain.com" class=card href="${verifyUrl}" target="_blank">
