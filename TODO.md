@@ -3,6 +3,16 @@
 - [x] check if it is possible, to place a three digits CVC under the private key scratch label
 - [x] save per print series: {amount, currency, timestamp, producer, btcAddress, CVC} forget immediately: keyPair -> privateKey
 - [x] test qr codes: console.log('*********', testKeyPairWIFtoBitcoinAddress('L12qHu6hUBjsXz5Z4ryYYABGFwwoWgA6k7vXJ6EtLbiQ5yqoU9Y7', 'bc1q7g5dchyev59m69aenfn9qzsty9nyy72r7lp66u'))
-- [ ] manage oym series upload, download all, overview manage foreign series verify balance etc
+- [ ] page manage oym series 
+    - [ ] upload
+    - [ ] download all 
+    - [ ] production incl avatar image
+    - [ ] overview manage foreign series
+    - [ ] verify balance with checkbox including in the series data as new prop
+    - [ ] move prompt to certification from page test to here 
+- [ ] page verify
+    - [ ] check certification api to iris.swiss.com
+        - [ ] success: show OYM certification logo with link to iris swiss certification overview page
+        - [ ] fail: show not certified and call to action to certify production, if there is productionSeries in localStorage, otherwise fail silently and just show the oym logo
 - [ ] PWA
 - [ ] host it from ipfs

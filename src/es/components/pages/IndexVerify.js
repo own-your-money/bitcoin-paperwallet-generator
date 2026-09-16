@@ -11,6 +11,16 @@ import IndexPrototype from './IndexPrototype.js'
 * @type {CustomElementConstructor}
 */
 export default class IndexVerify extends IndexPrototype {
+  constructor (options = {}, ...args) {
+    super({
+      importMetaUrl: import.meta.url,
+      tabindex: 'no-tabindex-style',
+      ...options
+    }, ...args)
+
+    // @ts-ignore
+    this.footer = `<a href="?page=/" target="_self" route>© OYM / ${Environment.stage} ${Environment.version} - print your own paper wallet(s)!</a>`
+  }
   /**
   * renders the css
   *
@@ -19,6 +29,9 @@ export default class IndexVerify extends IndexPrototype {
   renderCSS () {
     const result = super.renderCSS()
     this.css = /* css */ `
+      :host > section > header {
+        padding-bottom: 0;
+      }
       :host > section{
         --h-word-break-mobile: break-word;
         & > main {
@@ -61,7 +74,7 @@ export default class IndexVerify extends IndexPrototype {
     this.html = /* html */`
       <section>
         <header>
-          <a href="?page=/" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
+          <a href="?page=/" route target="_self"><img class=oym-img src="${this.importMetaUrl}../../../img/OYM.png" /></a>
         </header>
         <main>
           <hr>

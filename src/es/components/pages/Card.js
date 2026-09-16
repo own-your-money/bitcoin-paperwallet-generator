@@ -163,7 +163,7 @@ export default class Card extends WebWorker(IndexPrototype) {
     this.html = /* html */`
       <section>
         <header>
-          <a href="?page=/production" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
+          <a href="?page=/production" route target="_self"><img class=oym-img src="${this.importMetaUrl}../../../img/OYM.png" /></a>
           <h1 class=font-size-h2>Step: Upload your cards avatar</h1>
           <section>
             <input type="file" id="avatar" accept="image/*">
@@ -173,14 +173,14 @@ export default class Card extends WebWorker(IndexPrototype) {
         <main>
           <div class="cards single">
             <div class=card-with-img>
-              <img id=background-two-img src="./src/img/oym__print_final2.jpg" />
+              <img id=background-two-img src="${this.importMetaUrl}../../../img/oym__print_final2.jpg" />
               <div class=avatar-container>
                 <img class="img avatar" />
               </div>
               <div class=private-key-container>placeholder private key</div>
             </div>
             <div class=card-with-img>
-              <img id=background-one-img src="./src/img/oym__print_final1.jpg" />
+              <img id=background-one-img src="${this.importMetaUrl}../../../img/oym__print_final1.jpg" />
               <div class=public-key-container>placeholder public key</div>
               <div class=verify-url-container>placeholder verify url</div>
             </div>

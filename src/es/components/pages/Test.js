@@ -168,7 +168,7 @@ export default class Test extends IndexPrototype {
     this.html = /* html */`
       <section>
         <header>
-          <a href="?page=/production" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
+          <a href="?page=/production" route target="_self"><img class=oym-img src="${this.importMetaUrl}../../../img/OYM.png" /></a>
           <h1 class=font-size-h2>Step: Test key pairs!</h1>
           <section>
             <div>

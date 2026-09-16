@@ -19,7 +19,7 @@ export default class Seal extends Prerequisite {
     this.html = /* html */`
       <section>
         <header>
-          <a href="?page=/production" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
+          <a href="?page=/production" route target="_self"><img class=oym-img src="${this.importMetaUrl}../../../img/OYM.png" /></a>
           <h1 class=font-size-h2>Step: Seal & Stamp all the private keys</h1>
           <section>
             <div></div>
@@ -32,13 +32,13 @@ export default class Seal extends Prerequisite {
             <ol>
               <li>
                 <figure>
-                  <img src="./src/img/oym-apply-seal.jpg" alt="Apply seal!" />
+                  <img src="${this.importMetaUrl}../../../img/oym-apply-seal.jpg" alt="Apply seal!" />
                   <figcaption>Apply seal!</figcaption>
                 </figure>
               </li>
               <li>
                 <figure>
-                  <img src="./src/img/oym-stamp.jpg" alt="Stamp with any stamps." />
+                  <img src="${this.importMetaUrl}../../../img/oym-stamp.jpg" alt="Stamp with any stamps." />
                   <figcaption>Stamp with any stamps.<br>(Important is, that the stamp covers parts of the seal and parts of the card.)</figcaption>
                 </figure>
               </li>

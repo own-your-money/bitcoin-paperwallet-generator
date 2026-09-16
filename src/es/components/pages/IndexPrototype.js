@@ -189,33 +189,6 @@ export default class IndexPrototype extends Shadow() {
     return this.fetchCSS(styles)
   }
 
-  /**
-  * renders the html
-  *
-  * @return {Promise<void>}
-  */
-  renderHTML () {
-    this.html = /* html */`
-      <section>
-        <header>
-          <img class=oym-img src="./src/img/OYM.png" />
-          <h1>Welcome to</h1>
-          <a href="https://ownyour.money/" target=_blank><h3 class=center>ownyour.money</h3></a>
-        </header>
-        <main>
-          <hr>
-          <div class="cards overview single">
-            <a class=card href="?page=/production" route target="_self">
-              <h4><span>OYM production</span></h4>
-            </a>
-          </div>
-        </main>
-        <footer>${this.footer}</footer>
-      </section>
-    `
-    return Promise.resolve()
-  }
-
   get section () {
     return this.root.querySelector('section')
   }

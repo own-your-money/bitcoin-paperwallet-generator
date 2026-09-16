@@ -415,12 +415,12 @@ export default class Generator extends Card {
         <header>
           <dialog id=print-settings>
             <div>
-              <img class=long-edge src="./src/img/OYM-printer-settings-long-edge.png" />
-              <img class=short-edge src="./src/img/OYM-printer-settings-short-edge.png" />
+              <img class=long-edge src="${this.importMetaUrl}../../../img/OYM-printer-settings-long-edge.png" />
+              <img class=short-edge src="${this.importMetaUrl}../../../img/OYM-printer-settings-short-edge.png" />
               <button>continue!</button>
             </div>
           </dialog>
-          <a href="?page=/production" route target="_self"><img class=oym-img src="./src/img/OYM.png" /></a>
+          <a href="?page=/production" route target="_self"><img class=oym-img src="${this.importMetaUrl}../../../img/OYM.png" /></a>
           <h1 class=font-size-h2>Step: Generate your key pairs and print</h1>
           <section>
             <div>
@@ -522,7 +522,7 @@ export default class Generator extends Card {
     for (let index = 0; index < length; index++) {
       result += /* html */`
         <div class=card-with-img>
-          <img id=background-two-img src="./src/img/${name}" />
+          <img id=background-two-img src="${this.importMetaUrl}../../../img/${name}" />
           ${imgTypes.reduce((acc, curr) => /* html */`
             ${acc}
             <div class=${curr}-container>
