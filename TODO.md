@@ -6,7 +6,7 @@
 - [x] new pages: sweep/withdraw + buy bitcoin
 - [x] keywords
 - [ ] bread crumb/list for all production pages
-- [ ] grapheneos pp
+- [ ] pp eg. grapheneos, buy bitcoin
 - [ ] page manage oym series 
     - [ ] upload
     - [ ] download all 
