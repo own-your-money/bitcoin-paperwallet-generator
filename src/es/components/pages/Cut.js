@@ -11,6 +11,22 @@ import Prerequisite from './Prerequisite.js'
 // @ts-ignore
 export default class Cut extends Prerequisite {
   /**
+  * renders the css
+  *
+  * @return {Promise<void>}
+  */
+  renderCSS () {
+    const result = super.renderCSS()
+    this.css = /* css */ `
+      :host > section > main img {
+        max-height: 75dvh;
+        max-width: 100%;
+      }
+    `
+    return result
+  }
+
+  /**
   * renders the html
   *
   * @return {Promise<void>}
@@ -31,7 +47,7 @@ export default class Cut extends Prerequisite {
           <section>
             <ol>
               <li>Cut cards.</li>
-              <li>Transfer the printed amount of Bitcoin to the public key of each card. Charging them accordingly from any digital wallet.</li>
+              <li>Transfer the printed amount of Bitcoin to the public key of each card. Charging them accordingly from any digital wallet. <a href="?page=/buy" route target="_self">Buy bitcoin!</a></li>
               <li>
                 <figure>
                   <img src="${this.importMetaUrl}../../../img/oym-sleeve.jpg" alt="Put the card into the card sleeve." />

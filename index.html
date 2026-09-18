@@ -47,8 +47,8 @@
       }
     }
   </script>
-  <meta name="description" content="Generate paperwallets...">
-  <meta name="keywords" content="paperwallets">
+  <meta name="description" content="Print paper wallets...">
+  <meta name="keywords" content="print, paper-wallet, paper wallet, own your money, OYM">
   <title>OYM - bitcoin-paper-wallet-generator & verifier</title>
 </head>
 <body>
@@ -56,7 +56,7 @@
     <!--
       p-verify link example: https://iris-swiss.com/?cur=btc&amt=0.0001&ts=1789412913945&prd=weedo#bc1quj5yldugr0ujs473xsyceurypr5jdjfwj4vxmg
     -->
-    <c-router resume mode="search" routes="[
+    <c-router version="self.Environment.version" resume mode="search" routes="[
       {
         'name': 'p-index',
         'path': '../../components/pages/Index.js',
@@ -110,6 +110,18 @@
         'path': '../../components/pages/Cut.js',
         'regExp': ['/[#=]{1}\/cut/i'],
         'title': 'Cut, transfer/charge bitcoins, sleeve and eyelet punch each card'
+      },
+      {
+        'name': 'p-buy',
+        'path': '../../components/pages/Buy.js',
+        'regExp': ['/[#=]{1}\/buy/i'],
+        'title': 'Buy Bitcoins'
+      },
+      {
+        'name': 'p-sweep',
+        'path': '../../components/pages/Sweep.js',
+        'regExp': ['/[#=]{1}\/sweep/i'],
+        'title': 'Sweep private key!'
       }
     ]">
       <div class="custom-loader"></div>

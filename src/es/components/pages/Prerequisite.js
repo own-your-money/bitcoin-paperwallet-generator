@@ -18,6 +18,9 @@ export default class Prerequisite extends IndexPrototype {
   renderCSS () {
     const result = super.renderCSS()
     this.css = /* css */ `
+      :host > section > header {
+        padding-bottom: 1em;
+      }
       :host > section > main {
         & > section > ol {
           display: flex;

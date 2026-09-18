@@ -27,16 +27,21 @@
   --h-margin-bottom: 1.143rem;
   --h-text-align: center;
   --h1-color: var(--color);
+  --h1-font-size-mobile: 3.5em;
   --h1-font-size: 4.5em;
   --h1-word-break-mobile: break-word;
   --h2-color: var(--color-secondary);
+  --h2-font-size-mobile: 2.5em;
   --h2-font-size: 3.5em;
   --h3-color: var(--color);
+  --h3-font-size-mobile: 1.8em;
   --h3-font-size: 1.8em;
   --h4-color: var(--color);
   --h4-font-family: var(--font-family);
+  --h4-font-size-mobile: 1.35em;
   --h4-font-size: 1.35em;
   --hr-margin: 1em 0;
+  --p-margin: 0 0 1rem;
   --spacing: 0.5rem;
   --text-decoration: underline;
   --transition: all 0.3s ease-out;
@@ -55,6 +60,10 @@ body {
 c-router {
   display: flex;
   height: 100svh;
+  justify-content: center;
+}
+c-router > * {
+  max-width: max(1400px, 75dvw);
 }
 /* LOADER: https://www.cssportal.com/css-loader-generator/ */
 .custom-loader {

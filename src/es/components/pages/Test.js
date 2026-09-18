@@ -104,11 +104,11 @@ export default class Test extends IndexPrototype {
         ({qrScanner: this.qrScanner, video, errorEl} = await this.#startQrScanner(this.qrScannerEventListener, this.video))
         this.start(video, this.qrResultElement, errorEl)
         this.renderPreviousSeries()
-        this.irisSwissLink.addEventListener('click', this.irisSwissLinkClickEventListener)
       })
     } else {
       this.qrScanner.start()
     }
+    this.irisSwissLink.addEventListener('click', this.irisSwissLinkClickEventListener)
     return result
   }
 
@@ -126,6 +126,9 @@ export default class Test extends IndexPrototype {
   renderCSS () {
     const result = super.renderCSS()
     this.css = /* css */ `
+      :host > section > header {
+        padding-bottom: 1em;
+      }
       :host > section {
         &:has(> header #blur-video:checked) > main > section > video {
           filter: blur(10px);

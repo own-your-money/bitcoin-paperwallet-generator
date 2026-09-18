@@ -106,6 +106,12 @@ export default class IndexPrototype extends Shadow() {
               height: auto;
               font-size: 3cqw;
               width: calc(33.33cqw - 0.6666em);
+              min-height: 9em;
+              svg {
+                height: auto;
+                width: 4em;
+                max-height: 250px;
+              }
             }
           }
         }
@@ -127,7 +133,6 @@ export default class IndexPrototype extends Shadow() {
         text-align: center;
         max-height: 40svh;
         overflow: auto;
-        padding-bottom: 1em;
       }
       :host > section > main {
         grid-area: body;
@@ -144,13 +149,14 @@ export default class IndexPrototype extends Shadow() {
           line-height: var(--line-height-mobile, var(--line-height, normal));
           word-break: var(--word-break-mobile, var(--word-break, normal));
         }
-        :host section {
-          grid-template-rows: minmax(var(--header-height-mobile, var(--header-height, var(--spacing))), auto) 1fr minmax(var(--footer-min-height-mobile, var(--footer-min-height, var(--spacing))), auto);
-          .cards {
-            flex-direction: column;
-            align-items: center;
-            &.overview .card {
-              width: 100%;
+        :host > section {
+          & > main {
+            .cards{
+              flex-direction: column;
+              align-items: center;
+              &.overview > .card {
+                width: 100%;
+              }
             }
           }
         }
@@ -191,5 +197,9 @@ export default class IndexPrototype extends Shadow() {
 
   get section () {
     return this.root.querySelector('section')
+  }
+
+  get printerSvg () {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-printer"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M17 17h2a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h2" /><path d="M17 9v-4a2 2 0 0 0 -2 -2h-6a2 2 0 0 0 -2 2v4" /><path d="M7 15a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2l0 -4" /></svg>'
   }
 }
