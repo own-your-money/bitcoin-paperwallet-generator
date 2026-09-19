@@ -17,6 +17,7 @@ export default class Test extends IndexPrototype {
     let scanResult
     this.resetScanResult = () => {
       if (this.qrResultElement) this.qrResultElement.textContent = 'Scan: "Verify Now" - QR CODE'
+      if (this.qrCurrentElement) this.qrCurrentElement.innerHTML = ''
       return scanResult = {
         verifyUrl: '',
         bitcoinAddress: ''
@@ -24,6 +25,7 @@ export default class Test extends IndexPrototype {
     }
     this.resetScanResult()
     this.qrScannerEventListener = async ({data: dataString}) => {
+      this.qrCurrentElement.innerHTML = `<a href="${dataString}" target=_blank>${dataString}</a>`
       if (!scanResult.bitcoinAddress) {
         try {
           const url = new URL(dataString)
@@ -186,6 +188,7 @@ export default class Test extends IndexPrototype {
           <section id=qr-scanner>
             <video></video>
             <p id=qr-result class=center></p>
+            <p id=qr-current class=center></p>
             <div id=print-series></div>
             <hr>
             <details id=pending-series open>
@@ -294,6 +297,10 @@ export default class Test extends IndexPrototype {
 
   get qrResultElement () {
     return this.qrScannerSection?.querySelector('#qr-result')
+  }
+
+  get qrCurrentElement () {
+    return this.qrScannerSection?.querySelector('#qr-current')
   }
 
   get printSeriesElement () {
