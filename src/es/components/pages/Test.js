@@ -102,8 +102,13 @@ export default class Test extends IndexPrototype {
     const result = super.connectedCallback()
     if (shouldRenderHTML) {
       result.then(async () => {
-        let video, errorEl
-        ({qrScanner: this.qrScanner, video, errorEl} = await this.#startQrScanner(this.qrScannerEventListener, this.video))
+        let video, errorEl, hasCamera
+        ({qrScanner: this.qrScanner, video, errorEl, hasCamera} = await this.#startQrScanner(this.qrScannerEventListener, this.video))
+        this.setAttribute('has-camera', await hasCamera())
+        navigator.permissions.query({name: 'camera'}).then(permission => {
+          this.setAttribute('has-camera', permission.state === 'granted')
+          permission.onchange = () => this.setAttribute('has-camera', permission.state === 'granted')
+        })
         this.start(video, this.qrResultElement, errorEl)
         this.renderPreviousSeries()
       })
@@ -135,6 +140,10 @@ export default class Test extends IndexPrototype {
         &:has(> header #blur-video:checked) > main > section > video {
           filter: blur(10px);
         }
+        .no-camera {
+          display: none;
+          color: red;
+        }
         & > main {
           text-align: center;
           & > section > video {
@@ -159,6 +168,9 @@ export default class Test extends IndexPrototype {
             }
           }
         }
+      }
+      :host([has-camera=false]) > section .no-camera {
+        display: block;
       }
     `
     return result
@@ -185,6 +197,7 @@ export default class Test extends IndexPrototype {
         </header>
         <main>
           <h3>Scan your previously printed cards...</h3>
+          <h2 class=no-camera>NO CAMERA detected!<br>Connect a camera and reload page!</h2>
           <section id=qr-scanner>
             <video></video>
             <p id=qr-result class=center></p>
@@ -219,7 +232,8 @@ export default class Test extends IndexPrototype {
   }
 
   #startQrScanner (func, video = document.createElement('video'), errorEl = document.createElement('p')) {
-    return import(`${this.importMetaUrl}../../libs/qr-scanner.min.js`).then(async module => {
+    // https://github.com/nimiq/qr-scanner
+    return import(`${this.importMetaUrl}../../libs/qr-scanner.min.js`).then(module => {
         const QrScanner = module.default
         const result = {
           video,
@@ -233,7 +247,7 @@ export default class Test extends IndexPrototype {
               highlightCodeOutline: true,
             }
           ),
-          hasCamera: await QrScanner.hasCamera()
+          hasCamera: async () => await QrScanner.hasCamera()
         }
         return result
     })

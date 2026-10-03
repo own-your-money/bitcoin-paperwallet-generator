@@ -28,6 +28,7 @@ export default class Seal extends Prerequisite {
         </header>
         <main>
           <h3>Immediately seal and stamp all the private keys!</h3>
+          <p>Note: It may is worth to cut the edges margins off, to recognize if there is a drift between front and back of the print.
           <section>
             <ol>
               <li>
