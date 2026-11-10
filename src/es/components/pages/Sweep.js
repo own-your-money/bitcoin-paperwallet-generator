@@ -50,7 +50,7 @@ export default class Sweep extends IndexVerify {
         <main>
           <hr>
           <h3>Video of sweeping Private Key to Electrum</h3>
-          <video src="${this.importMetaUrl}../../../video/oym-sweep-small.mp4" autoplay controls muted></video>
+          <video src="${this.importMetaUrl}../../../video/oym-sweep-small.mp4" autoplay controls muted loop></video>
           <hr>
           <h3>Scratch to reveal your private key</h3>
           <div class=center><img src="${this.importMetaUrl}../../../img/scratch-private-wif-key.jpg" alt="Scratch the sticker with a coin!" /></div>
@@ -59,7 +59,7 @@ export default class Sweep extends IndexVerify {
           <h3>Installation:</h3>
           <p class=center>Windows, macOS, Linux desktop, or Android. <a href="https://electrum.org/#download" target=_blank>Download Electrum</a>.</p>
           <h3>Sweep:</h3>
-          <p class=center>Open your wallet and select <span class=bold>Wallet → Private Keys → Sweep</span>. Enter or scan the paper wallet's private key!<br><span style="color: red; font-weight: bold; padding: 0.25em;">NOTE: Electrum expects you to add "p2wpkh:" to the start of the key. Example: "p2wpkh:KxZcY47uGp9a..."</span><br>choose the destination, review the fee, and broadcast.<br><a href="https://bitcoinelectrum.com/importing-your-private-keys-into-electrum/" target=_blank>Detailed sweep instructions</a></p>
+          <p class=center>Open your wallet and select <span class=bold>Wallet → Private Keys → Sweep</span>. Enter or scan the paper wallet's private key!<br><span style="color: red; font-weight: bold; padding: 0.25em;">NOTE: Electrum expects you to add "p2wpkh:" to the start of the key. Example: "p2wpkh:KxZcY47uGp9a..."</span><br>choose the destination, review the fee, and broadcast.<br><a href="https://bitcoinelectrum.com/sweeping-your-private-keys-into-electrum/" target=_blank>Detailed sweep instructions</a></p>
           <hr>
           <a href="https://sparrowwallet.com/" target=_blank><h2>Sparrow Wallet</h2></a>
           <h3>Installation:</h3>
